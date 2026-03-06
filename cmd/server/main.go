@@ -177,7 +177,7 @@ func main() {
 	// Start server
 	port := cfg.Port
 	log.Printf("NgodingYuk API starting on port %s...", port)
-	if err := app.Listen(fmt.Sprintf(":%s", port)); err != nil {
+	if err := app.Listen(fmt.Sprintf("0.0.0.0:%s", port)); err != nil {
 		log.Fatal("Failed to start server: ", err)
 	}
 }
