@@ -57,6 +57,14 @@ func InitDB(databaseURL string) *gorm.DB {
 		log.Fatal(fmt.Sprintf("Failed to connect to database: %v", err))
 	}
 
+	sqlDB, err := db.DB()
+	if err == nil {
+		// SetMaxIdleConns sets the maximum number of connections in the idle connection pool.
+		sqlDB.SetMaxIdleConns(5)
+		// SetMaxOpenConns sets the maximum number of open connections to the database.
+		sqlDB.SetMaxOpenConns(20)
+	}
+
 	log.Println("Database connected successfully")
 	return db
 }

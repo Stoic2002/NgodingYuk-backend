@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -44,30 +45,34 @@ func main() {
 	defer sandboxDB.Close()
 	_ = sqlDB // suppress unused warning; GORM manages this
 
-	// Auto-migrate new domain models
-	log.Println("Running database migrations...")
-	if err := db.AutoMigrate(
-		&domain.User{},
-		&domain.Challenge{},
-		&domain.Course{},
-		&domain.Lesson{},
-		&domain.LessonQuiz{},
-		&domain.UserChallengeProgress{},
-		&domain.UserLessonProgress{},
-		&domain.UserXPHistory{},
-		&domain.UserCourseEnrollment{},
-		&domain.Certificate{},
-	); err != nil {
-		log.Fatal("Failed to run migrations: ", err)
+	// Auto-migrate new domain models only if DB_MIGRATE is true
+	if os.Getenv("DB_MIGRATE") == "true" {
+		log.Println("Running database migrations...")
+		if err := db.AutoMigrate(
+			&domain.User{},
+			&domain.Challenge{},
+			&domain.Course{},
+			&domain.Lesson{},
+			&domain.LessonQuiz{},
+			&domain.UserChallengeProgress{},
+			&domain.UserLessonProgress{},
+			&domain.UserXPHistory{},
+			&domain.UserCourseEnrollment{},
+			&domain.Certificate{},
+		); err != nil {
+			log.Fatal("Failed to run migrations: ", err)
+		}
+
+		// Create unique constraints
+		db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_user_challenge_unique ON user_challenge_progress(user_id, challenge_id)")
+		db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_user_lesson_unique ON user_lesson_progress(user_id, lesson_id)")
+		db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_user_course_enroll_unique ON user_course_enrollments(user_id, course_id)")
+		db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_certificate_unique ON certificates(user_id, course_id)")
+
+		log.Println("Migrations completed successfully")
+	} else {
+		log.Println("Skipping migrations (DB_MIGRATE != true)")
 	}
-
-	// Create unique constraints
-	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_user_challenge_unique ON user_challenge_progress(user_id, challenge_id)")
-	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_user_lesson_unique ON user_lesson_progress(user_id, lesson_id)")
-	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_user_course_enroll_unique ON user_course_enrollments(user_id, course_id)")
-	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_certificate_unique ON certificates(user_id, course_id)")
-
-	log.Println("Migrations completed successfully")
 
 	// Initialize repositories
 	userRepo := repository.NewUserRepository(db)
