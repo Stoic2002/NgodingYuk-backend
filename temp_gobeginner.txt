@@ -1,0 +1,731 @@
+	// --- Go Beginner Modules ---
+	mod1 := seedModule(db, trackID, "Hello World & Setup", "Get started with Go — install, write, and run your first program.", 1)
+	mod2 := seedModule(db, trackID, "Variables & Data Types", "Learn about variables, constants, and Go's type system.", 2)
+	mod3 := seedModule(db, trackID, "Control Flow", "Master if/else, switch, and loops in Go.", 3)
+	mod4 := seedModule(db, trackID, "Functions", "Write reusable code with functions, multiple returns, and closures.", 4)
+
+	log.Println("Modules seeded")
+
+	// --- Module 1 Lessons: Hello World ---
+	lesson1 := seedLesson(db, mod1.ID, "Your First Go Program", `# Your First Go Program
+
+Welcome to Go! Let's write your very first program.
+
+## What is Go?
+
+Go (also called Golang) is a programming language created by Google. It's designed to be:
+- **Simple** — clean syntax, easy to learn
+- **Fast** — compiles to machine code
+- **Concurrent** — built-in support for parallel tasks
+
+## The Hello World Program
+
+Every Go program starts with a **package declaration** and a **main function**:
+
+`+"`"+`go
+package main
+
+import "fmt"
+
+func main() {
+    fmt.Println("Hello, World!")
+}
+`+"`"+`
+
+### Breaking it down:
+- `+"`package main`"+` — declares this is the main (executable) package
+- `+"`import \"fmt\"`"+` — imports the formatting package for printing
+- `+"`func main()`"+` — the entry point of your program
+- `+"`fmt.Println()`"+` — prints text to the console
+
+Try it yourself in the editor! →`, 1, 10)
+
+	seedExercise(db, lesson1.ID, "Write a Go program that prints \"Hello, NgodingYuk!\" to the console.",
+		"package main\n\nimport \"fmt\"\n\nfunc main() {\n\t// Write your code here\n\t\n}",
+		"package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfmt.Println(\"Hello, NgodingYuk!\")\n}",
+		"go",
+		[]domain.TestCase{{Input: "", Expected: "Hello, NgodingYuk!"}},
+	)
+
+	seedQuiz(db, lesson1.ID,
+		"What does fmt.Println() do in Go?",
+		[]string{
+			"Reads input from the user",
+			"Prints text to the console with a newline",
+			"Formats a string without printing",
+			"Declares a variable",
+		},
+		1,
+		"fmt.Println() prints its arguments to standard output (console) followed by a newline character.",
+	)
+
+	// Lesson 2
+	lesson2 := seedLesson(db, mod1.ID, "Running Go Programs", `# Running Go Programs
+
+## Two Ways to Run
+
+### 1. go run — Quick execution
+Compiles and runs in one step. Great for development:
+`+"`"+`bash
+go run main.go
+`+"`"+`
+
+### 2. go build — Compile to binary
+Creates an executable file you can distribute:
+`+"`"+`bash
+go build -o myapp main.go
+./myapp
+`+"`"+`
+
+## Printing Output
+
+The `+"`fmt`"+` package has several print functions:
+`+"`"+`go
+package main
+
+import "fmt"
+
+func main() {
+    fmt.Println("Hello!")   // Prints with newline
+    fmt.Print("No newline") // Prints without newline
+    fmt.Printf("Name: %s\n", "Go") // Formatted print
+}
+`+"`"+`
+
+## Comments in Go
+`+"`"+`go
+// This is a single-line comment
+
+/* This is a
+   multi-line comment */
+`+"`"+`
+
+Comments are ignored by the compiler — use them to explain your code.
+
+Try writing your own program using fmt.Println() in the editor! →`, 2, 10)
+
+	seedExercise(db, lesson2.ID,
+		"Write a program that prints your name using fmt.Println().",
+		"package main\n\nimport \"fmt\"\n\nfunc main() {\n\t// Print your name\n\t\n}",
+		"package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfmt.Println(\"Gopher\")\n}",
+		"go",
+		[]domain.TestCase{{Input: "", Expected: "Gopher"}},
+	)
+
+	seedQuiz(db, lesson2.ID,
+		"Which command compiles AND runs a Go file in one step?",
+		[]string{"go build", "go run", "go compile", "go exec"},
+		1,
+		"go run compiles the source file to a temporary binary and immediately executes it.",
+	)
+
+	// --- Module 2 Lessons: Variables ---
+	lesson3 := seedLesson(db, mod2.ID, "Declaring Variables", `# Declaring Variables
+
+Variables store data that your program can use and modify.
+
+## Using var keyword
+`+"`"+`go
+package main
+
+import "fmt"
+
+func main() {
+    var name string = "Gopher"
+    var age int = 25
+    fmt.Println(name, age)
+}
+`+"`"+`
+
+## Short Declaration :=
+Go can infer the type automatically with `+"`:=`"+`:
+`+"`"+`go
+greeting := "Hello, Go!"  // Go infers type as string
+count := 42                // Go infers type as int
+fmt.Println(greeting)
+fmt.Println(count)
+`+"`"+`
+
+## Constants
+Use `+"`const`"+` for values that never change:
+`+"`"+`go
+const pi = 3.14159
+`+"`"+`
+
+## Zero Values
+Uninitialized variables get a default "zero value":
+| Type    | Zero Value |
+|---------|-----------|
+| int     | 0         |
+| float64 | 0.0       |
+| string  | ""        |
+| bool    | false     |
+
+Try declaring a variable and printing it! →`, 1, 15)
+
+	seedExercise(db, lesson3.ID,
+		"Declare a variable called greeting with the value \"Hello, Go!\" and print it.",
+		"package main\n\nimport \"fmt\"\n\nfunc main() {\n\t// Declare greeting variable and print it\n\t\n}",
+		"package main\n\nimport \"fmt\"\n\nfunc main() {\n\tgreeting := \"Hello, Go!\"\n\tfmt.Println(greeting)\n}",
+		"go",
+		[]domain.TestCase{{Input: "", Expected: "Hello, Go!"}},
+	)
+
+	seedQuiz(db, lesson3.ID,
+		"What is the zero value of a string in Go?",
+		[]string{"null", "nil", "\"\" (empty string)", "0"},
+		2,
+		"In Go, the zero value for strings is an empty string. Go does not have null — it uses zero values instead.",
+	)
+
+	lesson4 := seedLesson(db, mod2.ID, "Data Types", `# Data Types in Go
+
+Go is a statically typed language — every variable has a fixed type.
+
+## Numeric Types
+`+"`"+`go
+var age int = 25
+var price float64 = 19.99
+var letter byte = 'A'  // byte is alias for uint8
+`+"`"+`
+
+## Strings
+Strings are immutable sequences of bytes:
+`+"`"+`go
+name := "GoLang"
+fmt.Println(len(name)) // 6
+`+"`"+`
+
+## Booleans
+`+"`"+`go
+isActive := true
+fmt.Println(isActive) // true
+`+"`"+`
+
+## Type Conversion
+Go requires **explicit** type conversion — it never converts automatically:
+`+"`"+`go
+package main
+
+import "fmt"
+
+func main() {
+    x := 10
+    f := float64(x)   // int → float64
+    fmt.Println(f)     // 10
+}
+`+"`"+`
+
+Try converting an integer to float64 in the editor! →`, 2, 15)
+
+	seedExercise(db, lesson4.ID,
+		"Create an integer variable x with value 10, convert it to float64, and print the result.",
+		"package main\n\nimport \"fmt\"\n\nfunc main() {\n\t// Create x, convert to float64, print\n\t\n}",
+		"package main\n\nimport \"fmt\"\n\nfunc main() {\n\tx := 10\n\tf := float64(x)\n\tfmt.Println(f)\n}",
+		"go",
+		[]domain.TestCase{{Input: "", Expected: "10"}},
+	)
+
+	seedQuiz(db, lesson4.ID,
+		"Does Go allow implicit type conversion?",
+		[]string{"Yes, Go converts automatically", "No, explicit conversion is required", "Only for numeric types", "Only within the same package"},
+		1,
+		"Go requires explicit type conversion. You must write float64(myInt) to convert an int to a float64.",
+	)
+
+	// --- Module 3: Control Flow ---
+	lesson5 := seedLesson(db, mod3.ID, "If/Else Statements", `# If/Else in Go
+
+## Basic If/Else
+No parentheses around conditions, but braces `+"`{}`"+` are required:
+`+"`"+`go
+package main
+
+import "fmt"
+
+func main() {
+    n := 5
+    if n > 0 {
+        fmt.Println("positive")
+    } else if n < 0 {
+        fmt.Println("negative")
+    } else {
+        fmt.Println("zero")
+    }
+}
+`+"`"+`
+
+## Comparison Operators
+| Operator | Meaning            |
+|----------|--------------------|  
+| ==       | Equal              |
+| !=       | Not equal          |
+| >        | Greater than       |
+| <        | Less than          |
+| >=       | Greater or equal   |
+| <=       | Less or equal      |
+
+## If with Initialization
+Go allows a short statement before the condition:
+`+"`"+`go
+if x := 10; x > 5 {
+    fmt.Println("x is big") // x only exists here
+}
+`+"`"+`
+
+Try checking if a number is positive, negative, or zero! →`, 1, 15)
+
+	seedExercise(db, lesson5.ID,
+		"Write a program that checks if a number is positive, negative, or zero. Read the number from stdin.",
+		"package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvar n int\n\tfmt.Scan(&n)\n\t// Check if positive, negative, or zero\n\t\n}",
+		"package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvar n int\n\tfmt.Scan(&n)\n\tif n > 0 {\n\t\tfmt.Println(\"positive\")\n\t} else if n < 0 {\n\t\tfmt.Println(\"negative\")\n\t} else {\n\t\tfmt.Println(\"zero\")\n\t}\n}",
+		"go",
+		[]domain.TestCase{
+			{Input: "5", Expected: "positive"},
+			{Input: "-3", Expected: "negative"},
+			{Input: "0", Expected: "zero"},
+		},
+	)
+
+	seedQuiz(db, lesson5.ID,
+		"In Go, are parentheses required around the if condition?",
+		[]string{"Yes, always required", "No, they are optional and usually omitted", "Only for compound conditions", "Only in switch statements"},
+		1,
+		"Unlike C/Java, Go does NOT require parentheses around if conditions. Curly braces {} are required though.",
+	)
+
+	// --- Module 4: Functions ---
+	lesson6 := seedLesson(db, mod4.ID, "Defining Functions", `# Functions in Go
+
+Functions let you organize reusable pieces of code.
+
+## Basic Syntax
+`+"`"+`go
+package main
+
+import "fmt"
+
+func greet(name string) string {
+    return "Hello, " + name + "!"
+}
+
+func main() {
+    fmt.Println(greet("Go"))
+}
+`+"`"+`
+
+## Functions with Parameters
+`+"`"+`go
+func add(a int, b int) int {
+    return a + b
+}
+
+// Short form when params share a type:
+func add(a, b int) int {
+    return a + b
+}
+`+"`"+`
+
+## Multiple Return Values
+Go functions can return multiple values — commonly used for result + error:
+`+"`"+`go
+func divide(a, b float64) (float64, error) {
+    if b == 0 {
+        return 0, fmt.Errorf("cannot divide by zero")
+    }
+    return a / b, nil
+}
+`+"`"+`
+
+## Named Returns
+You can name return values for clarity:
+`+"`"+`go
+func swap(a, b int) (x, y int) {
+    x = b
+    y = a
+    return // naked return
+}
+`+"`"+`
+
+Try writing an add function in the editor! →`, 1, 20)
+
+	seedExercise(db, lesson6.ID,
+		"Write a function add that takes two integers and returns their sum. Call it from main with 3 and 7.",
+		"package main\n\nimport \"fmt\"\n\n// Define the add function here\n\nfunc main() {\n\t// Call add(3, 7) and print the result\n\t\n}",
+		"package main\n\nimport \"fmt\"\n\nfunc add(a, b int) int {\n\treturn a + b\n}\n\nfunc main() {\n\tfmt.Println(add(3, 7))\n}",
+		"go",
+		[]domain.TestCase{{Input: "", Expected: "10"}},
+	)
+
+	seedQuiz(db, lesson6.ID,
+		"Can Go functions return multiple values?",
+		[]string{"No, only one value", "Yes, Go supports multiple return values", "Only with pointers", "Only with the reflect package"},
+		1,
+		"Yes! Multiple return values are a signature feature of Go. They are commonly used for returning a result and an error.",
+	)
+
+	// --- Module 5: Arrays & Slices ---
+	mod5 := seedModule(db, trackID, "Arrays & Slices", "Work with ordered collections of data.", 5)
+
+	lesson7 := seedLesson(db, mod5.ID, "Arrays", `# Arrays in Go
+
+An array holds a **fixed number** of elements of the same type.
+
+## Declaring Arrays
+`+"`"+`go
+package main
+
+import "fmt"
+
+func main() {
+    var nums [3]int          // zero-valued: [0, 0, 0]
+    nums[0] = 10
+    nums[1] = 20
+    nums[2] = 30
+
+    fmt.Println(nums[1])     // 20
+    fmt.Println(len(nums))   // 3
+
+    // Shorthand initialization
+    colors := [3]string{"red", "green", "blue"}
+    fmt.Println(colors[0])   // red
+}
+`+"`"+`
+
+## Key Points
+- Array size is part of the type: `+"`[3]int`"+` ≠ `+"`[5]int`"+`
+- Arrays are **value types** — assigning copies the data
+- Use `+"`len()`"+` to get the length
+
+Try it! →`, 1, 15)
+
+	seedExercise(db, lesson7.ID, "Create an array of 3 integers: 10, 20, 30. Print the second element.",
+		"package main\n\nimport \"fmt\"\n\nfunc main() {\n\t// Create array and print second element\n\t\n}",
+		"package main\n\nimport \"fmt\"\n\nfunc main() {\n\tnums := [3]int{10, 20, 30}\n\tfmt.Println(nums[1])\n}",
+		"go", []domain.TestCase{{Input: "", Expected: "20"}})
+	seedQuiz(db, lesson7.ID, "What happens if you try to access an index beyond the array length?", []string{"It returns 0", "It returns nil", "The program panics at runtime", "The compiler ignores it"}, 2, "Go performs bounds checking. Accessing out-of-range index causes a runtime panic.")
+
+	lesson8 := seedLesson(db, mod5.ID, "Slices", `# Slices in Go
+
+Slices are **dynamic-length** views of arrays — they are far more common than arrays.
+
+## Creating Slices
+`+"`"+`go
+package main
+
+import "fmt"
+
+func main() {
+    // From a literal
+    nums := []int{1, 2, 3, 4, 5}
+
+    // Using make
+    scores := make([]int, 3) // [0, 0, 0]
+
+    fmt.Println(nums)
+    fmt.Println(scores)
+}
+`+"`"+`
+
+## Append
+Add elements with `+"`append()`"+`:
+`+"`"+`go
+nums := []int{1, 2}
+nums = append(nums, 3, 4)
+fmt.Println(nums) // [1 2 3 4]
+`+"`"+`
+
+## Slicing
+`+"`"+`go
+nums := []int{10, 20, 30, 40, 50}
+sub := nums[1:3] // [20, 30] — index 1 up to (not including) 3
+`+"`"+`
+
+Try appending to a slice! →`, 2, 15)
+
+	seedExercise(db, lesson8.ID, "Create an empty int slice, append the numbers 10, 20, 30 to it, then print the slice.",
+		"package main\n\nimport \"fmt\"\n\nfunc main() {\n\t// Create slice, append values, print\n\t\n}",
+		"package main\n\nimport \"fmt\"\n\nfunc main() {\n\tnums := []int{}\n\tnums = append(nums, 10, 20, 30)\n\tfmt.Println(nums)\n}",
+		"go", []domain.TestCase{{Input: "", Expected: "[10 20 30]"}})
+	seedQuiz(db, lesson8.ID, "What is the key difference between arrays and slices in Go?", []string{"Arrays are faster", "Slices have a fixed size, arrays are dynamic", "Arrays have a fixed size, slices are dynamic", "There is no difference"}, 2, "Arrays have a fixed size determined at compile time. Slices are dynamically sized and much more commonly used.")
+
+	// --- Module 6: Maps ---
+	mod6 := seedModule(db, trackID, "Maps", "Store key-value pairs for fast lookups.", 6)
+
+	lesson9 := seedLesson(db, mod6.ID, "Creating & Using Maps", `# Maps in Go
+
+Maps store **key-value pairs** — like dictionaries in Python or objects in JavaScript.
+
+## Creating Maps
+`+"`"+`go
+package main
+
+import "fmt"
+
+func main() {
+    // Using make
+    ages := make(map[string]int)
+    ages["Alice"] = 30
+    ages["Bob"] = 25
+
+    // Using a literal
+    scores := map[string]int{
+        "math":    95,
+        "science": 88,
+    }
+
+    fmt.Println(ages["Alice"]) // 30
+    fmt.Println(scores)
+}
+`+"`"+`
+
+## Checking Key Existence
+`+"`"+`go
+val, exists := ages["Charlie"]
+if exists {
+    fmt.Println(val)
+} else {
+    fmt.Println("Not found")
+}
+`+"`"+`
+
+## Delete a Key
+`+"`"+`go
+delete(ages, "Bob")
+`+"`"+`
+
+Try creating a map! →`, 1, 15)
+
+	seedExercise(db, lesson9.ID, "Create a map from string to int. Add key \"x\" with value 10 and key \"y\" with value 20. Print the value of \"x\".",
+		"package main\n\nimport \"fmt\"\n\nfunc main() {\n\t// Create map and print value of \"x\"\n\t\n}",
+		"package main\n\nimport \"fmt\"\n\nfunc main() {\n\tm := map[string]int{\"x\": 10, \"y\": 20}\n\tfmt.Println(m[\"x\"])\n}",
+		"go", []domain.TestCase{{Input: "", Expected: "10"}})
+	seedQuiz(db, lesson9.ID, "What does Go return if you access a map key that doesn't exist?", []string{"nil", "An error", "The zero value of the value type", "The program panics"}, 2, "Accessing a missing key returns the zero value (0 for int, \"\" for string, etc.). Use the comma-ok idiom to check existence.")
+
+	lesson10 := seedLesson(db, mod6.ID, "Iterating Over Maps", `# Iterating Maps with for range
+
+Use `+"`for range`"+` to loop over all key-value pairs:
+
+`+"`"+`go
+package main
+
+import "fmt"
+
+func main() {
+    fruits := map[string]int{
+        "apple":  5,
+        "banana": 3,
+        "cherry": 8,
+    }
+
+    for key, value := range fruits {
+        fmt.Printf("%s: %d\n", key, value)
+    }
+
+    // Count entries
+    fmt.Println("Total:", len(fruits))
+}
+`+"`"+`
+
+## Important Notes
+- Map iteration order is **random** in Go
+- Use `+"`len()`"+` to get the number of entries
+- `+"`range`"+` also works on arrays, slices, and strings
+
+Try iterating over a map! →`, 2, 15)
+
+	seedExercise(db, lesson10.ID, "Create a map with keys \"a\"=1, \"b\"=2, \"c\"=3. Print the total number of entries using len().",
+		"package main\n\nimport \"fmt\"\n\nfunc main() {\n\t// Create map and print len\n\t\n}",
+		"package main\n\nimport \"fmt\"\n\nfunc main() {\n\tm := map[string]int{\"a\": 1, \"b\": 2, \"c\": 3}\n\tfmt.Println(len(m))\n}",
+		"go", []domain.TestCase{{Input: "", Expected: "3"}})
+	seedQuiz(db, lesson10.ID, "Is the iteration order of a Go map guaranteed?", []string{"Yes, it's always alphabetical", "Yes, it's insertion order", "No, iteration order is random", "Only if you use sort.Map()"}, 2, "Go intentionally randomizes map iteration order to prevent developers from relying on it.")
+
+	// --- Module 7: Strings & Formatting ---
+	mod7 := seedModule(db, trackID, "Strings & Formatting", "Manipulate text and format output.", 7)
+
+	lesson11 := seedLesson(db, mod7.ID, "String Operations", `# Strings in Go
+
+Strings are immutable sequences of bytes backed by UTF-8. The `+"`strings`"+` package provides many utility functions.
+
+## Common Operations
+`+"`"+`go
+package main
+
+import (
+    "fmt"
+    "strings"
+)
+
+func main() {
+    s := "Hello, World!"
+
+    fmt.Println(len(s))                    // 13
+    fmt.Println(strings.ToUpper(s))        // HELLO, WORLD!
+    fmt.Println(strings.ToLower(s))        // hello, world!
+    fmt.Println(strings.Contains(s, "World")) // true
+    fmt.Println(strings.ReplaceAll(s, "World", "Go")) // Hello, Go!
+    fmt.Println(strings.Split("a,b,c", ",")) // [a b c]
+}
+`+"`"+`
+
+## String Concatenation
+`+"`"+`go
+first := "Hello"
+last := "World"
+full := first + ", " + last + "!"
+fmt.Println(full) // Hello, World!
+`+"`"+`
+
+Try using strings.ToUpper! →`, 1, 15)
+
+	seedExercise(db, lesson11.ID, "Given the string \"hello\", convert it to uppercase and print it.",
+		"package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\ts := \"hello\"\n\t// Convert to uppercase and print\n\t_ = strings.ToUpper\n}",
+		"package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\ts := \"hello\"\n\tfmt.Println(strings.ToUpper(s))\n}",
+		"go", []domain.TestCase{{Input: "", Expected: "HELLO"}})
+	seedQuiz(db, lesson11.ID, "Are strings mutable in Go?", []string{"Yes, you can change individual characters", "No, strings are immutable", "Only with unsafe pointer", "Only if declared with var"}, 1, "Strings in Go are immutable. To modify a string, you create a new one.")
+
+	lesson12 := seedLesson(db, mod7.ID, "Formatted Printing", `# fmt.Printf — Formatted Output
+
+`+"`fmt.Printf`"+` lets you format output with verbs (placeholders):
+
+## Common Format Verbs
+| Verb | Description         | Example          |
+|------|---------------------|------------------|
+| %s   | String              | "hello"          |
+| %d   | Integer (decimal)   | 42               |
+| %f   | Float               | 3.14             |
+| %.2f | Float (2 decimals)  | 3.14             |
+| %v   | Any value (default) | {name: "Go"}     |
+| %T   | Type of value       | int              |
+| %t   | Boolean             | true             |
+
+## Examples
+`+"`"+`go
+package main
+
+import "fmt"
+
+func main() {
+    name := "Gopher"
+    age := 5
+    score := 95.5
+
+    fmt.Printf("Name: %s\n", name)
+    fmt.Printf("Age: %d\n", age)
+    fmt.Printf("Score: %.1f\n", score)
+    fmt.Printf("Type: %T\n", age) // int
+}
+`+"`"+`
+
+## Sprintf — Format to String
+`+"`"+`go
+msg := fmt.Sprintf("Hello, %s!", name)
+fmt.Println(msg) // Hello, Gopher!
+`+"`"+`
+
+Try formatted printing! →`, 2, 15)
+
+	seedExercise(db, lesson12.ID, "Use fmt.Printf to print: \"Name: Go, Age: 15\" using variables name=\"Go\" and age=15.",
+		"package main\n\nimport \"fmt\"\n\nfunc main() {\n\tname := \"Go\"\n\tage := 15\n\t// Use fmt.Printf to print formatted output\n\t_ = name\n\t_ = age\n}",
+		"package main\n\nimport \"fmt\"\n\nfunc main() {\n\tname := \"Go\"\n\tage := 15\n\tfmt.Printf(\"Name: %s, Age: %d\\n\", name, age)\n}",
+		"go", []domain.TestCase{{Input: "", Expected: "Name: Go, Age: 15"}})
+	seedQuiz(db, lesson12.ID, "What format verb prints any value in its default format?", []string{"%s", "%d", "%v", "%a"}, 2, "%v prints any value using its default format. It's very useful for debugging.")
+
+	// --- Module 8: Pointers ---
+	mod8 := seedModule(db, trackID, "Pointers Basics", "Understand memory addresses and references in Go.", 8)
+
+	lesson13 := seedLesson(db, mod8.ID, "Understanding Pointers", `# Pointers in Go
+
+A pointer holds the **memory address** of a value.
+
+## Getting a Pointer
+Use `+"`&`"+` to get the address of a variable:
+`+"`"+`go
+package main
+
+import "fmt"
+
+func main() {
+    x := 42
+    p := &x          // p is a pointer to x
+
+    fmt.Println(p)   // memory address like 0xc000014088
+    fmt.Println(*p)  // 42 — dereference to get the value
+}
+`+"`"+`
+
+## Dereferencing
+Use `+"`*`"+` to access or modify the value at the pointer:
+`+"`"+`go
+*p = 100
+fmt.Println(x) // 100 — x changed because p points to it!
+`+"`"+`
+
+## Common Use: Function Parameters
+`+"`"+`go
+func double(n *int) {
+    *n = *n * 2
+}
+
+func main() {
+    x := 5
+    double(&x)
+    fmt.Println(x) // 10
+}
+`+"`"+`
+
+Without pointers, Go would pass a **copy**, and the original wouldn't change.
+
+Try using pointers! →`, 1, 20)
+
+	seedExercise(db, lesson13.ID, "Create an int variable x = 5. Create a pointer to x, then use the pointer to change x to 50. Print x.",
+		"package main\n\nimport \"fmt\"\n\nfunc main() {\n\tx := 5\n\t// Create pointer and modify x through it\n\t\n\tfmt.Println(x)\n}",
+		"package main\n\nimport \"fmt\"\n\nfunc main() {\n\tx := 5\n\tp := &x\n\t*p = 50\n\tfmt.Println(x)\n}",
+		"go", []domain.TestCase{{Input: "", Expected: "50"}})
+	seedQuiz(db, lesson13.ID, "What does the & operator do in Go?", []string{"Logical AND", "Gets the memory address of a variable", "Dereferences a pointer", "Creates a new variable"}, 1, "The & operator returns a pointer to the variable — its memory address.")
+
+	lesson14 := seedLesson(db, mod8.ID, "Pointers and Functions", `# Using Pointers with Functions
+
+By default, Go passes arguments **by value** (copies). Use pointers to modify the original.
+
+## Without Pointer (copy)
+`+"`"+`go
+func tryChange(n int) {
+    n = 999 // changes the copy, not the original
+}
+
+x := 5
+tryChange(x)
+fmt.Println(x) // still 5
+`+"`"+`
+
+## With Pointer (reference)
+`+"`"+`go
+package main
+
+import "fmt"
+
+func change(n *int) {
+    *n = 999 // modifies the original
+}
+
+func main() {
+    x := 5
+    change(&x)
+    fmt.Println(x) // 999
+}
+`+"`"+`
+
+## When to Use Pointers?
+- When you need to **modify** the caller's variable
+- When passing **large structs** (avoids expensive copies)
+- When a value might be **nil** (absence of value)
+
+Try writing a function that uses pointers! →`, 2, 15)
+
+	seedExercise(db, lesson14.ID, "Write a function increment(n *int) that adds 1 to the value. Call it from main with a variable set to 10 and print the result.",
+		"package main\n\nimport \"fmt\"\n\n// Write increment function here\n\nfunc main() {\n\tx := 10\n\t// Call increment and print x\n\t\n}",
+		"package main\n\nimport \"fmt\"\n\nfunc increment(n *int) {\n\t*n = *n + 1\n}\n\nfunc main() {\n\tx := 10\n\tincrement(&x)\n\tfmt.Println(x)\n}",
+		"go", []domain.TestCase{{Input: "", Expected: "11"}})
+	seedQuiz(db, lesson14.ID, "Why might you pass a large struct by pointer instead of by value?", []string{"Pointers use more memory", "To avoid copying the entire struct (better performance)", "Go requires it", "It's not possible to pass structs by value"}, 1, "Passing a large struct by value copies all its data. A pointer is just a memory address (8 bytes), so it's much cheaper.")
+

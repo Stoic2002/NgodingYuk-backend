@@ -1,0 +1,1 @@
+func seedGoBeginner(db *gorm.DB, trackID uuid.UUID) {
