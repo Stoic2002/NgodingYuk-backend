@@ -8,7 +8,6 @@ import (
 	"github.com/arulkarim/ngodingyuk-server/internal/config"
 	"github.com/arulkarim/ngodingyuk-server/internal/domain"
 	"github.com/google/uuid"
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -49,10 +48,7 @@ func challengeUUID(idx int) uuid.UUID {
 func main() {
 	cfg := config.Load()
 
-	db, err := gorm.Open(postgres.Open(cfg.DatabaseURL), &gorm.Config{})
-	if err != nil {
-		log.Fatal("Failed to connect to database: ", err)
-	}
+	db := config.InitDB(cfg.DatabaseURL)
 
 	log.Println("Seeding courses...")
 	seedCourses(db)

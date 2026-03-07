@@ -107,7 +107,7 @@ func (s *ExecuteService) RunGo(code string, testCases json.RawMessage) (*Execute
 }
 
 // RunSQL executes SQL code in a PostgreSQL sandbox.
-func (s *ExecuteService) RunSQL(code string, schemaInfo json.RawMessage, testCases json.RawMessage) (*ExecuteResponse, error) {
+func (s *ExecuteService) RunSQL(code string, schemaInfo json.RawMessage, testCases json.RawMessage, expectedOutput json.RawMessage) (*ExecuteResponse, error) {
 	sandbox := sqlsandbox.New(s.sqlDB)
 
 	result, err := sandbox.Execute(schemaInfo, code)
@@ -127,18 +127,39 @@ func (s *ExecuteService) RunSQL(code string, schemaInfo json.RawMessage, testCas
 	}
 
 	// Compare with expected output test cases
-	if testCases == nil || string(testCases) == "null" {
-		// No expected output — just return the result
-		actualJSON, _ := json.Marshal(map[string]interface{}{
-			"columns": result.Columns,
-			"rows":    result.Rows,
-		})
+	if testCases == nil || string(testCases) == "null" || string(testCases) == "[]" {
+		actualJSON, _ := json.Marshal(result.Rows)
+
+		allPassed := false
+		var passed bool
+
+		if expectedOutput != nil && string(expectedOutput) != "null" {
+			// Compare strings directly if they are marshaled arrays
+			// Simple exact string match or unmarshal and deep compare
+			var expData, actData []map[string]interface{}
+			_ = json.Unmarshal(expectedOutput, &expData)
+			_ = json.Unmarshal(actualJSON, &actData)
+
+			// Deep equal check: marshal them back to ensure key orders / spacing don't fail a string compare
+			normExp, _ := json.Marshal(expData)
+			normAct, _ := json.Marshal(actData)
+
+			passed = string(normExp) == string(normAct)
+			allPassed = passed
+		} else {
+			// If no expected output is defined at all, just return successful
+			passed = true
+			allPassed = true
+		}
+
 		return &ExecuteResponse{
 			Results: []RunResult{{
-				Passed: true,
-				Actual: string(actualJSON),
+				Passed:   passed,
+				Actual:   string(actualJSON),
+				Expected: string(expectedOutput),
+				Input:    "Query Comparison",
 			}},
-			AllPassed: true,
+			AllPassed: allPassed,
 		}, nil
 	}
 

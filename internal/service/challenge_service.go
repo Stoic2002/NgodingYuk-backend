@@ -150,7 +150,7 @@ func (s *ChallengeService) Run(slug string, code string) (*ExecuteResponse, erro
 	case "golang", "go":
 		return s.executeSvc.RunGo(code, c.TestCases)
 	case "sql":
-		return s.executeSvc.RunSQL(code, c.SchemaInfo, c.TestCases)
+		return s.executeSvc.RunSQL(code, c.SchemaInfo, c.TestCases, c.ExpectedOutput)
 	default:
 		return nil, errors.New("unsupported language: " + c.Language)
 	}
@@ -169,7 +169,7 @@ func (s *ChallengeService) Submit(slug string, userID uuid.UUID, code string) (*
 	case "golang", "go":
 		execResult, err = s.executeSvc.RunGo(code, c.TestCases)
 	case "sql":
-		execResult, err = s.executeSvc.RunSQL(code, c.SchemaInfo, c.TestCases)
+		execResult, err = s.executeSvc.RunSQL(code, c.SchemaInfo, c.TestCases, c.ExpectedOutput)
 	default:
 		return nil, errors.New("unsupported language: " + c.Language)
 	}

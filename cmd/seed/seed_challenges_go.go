@@ -54,14 +54,14 @@ func seedGoChallenges(db *gorm.DB) {
 		},
 		{ID: challengeUUID(18), Slug: "balik-kata-nama", Language: "golang", Difficulty: "easy", XPReward: 15, OrderIndex: 5,
 			TitleID: "Balik Nama untuk Kode Rahasia", TitleEN: sp("Reverse Name for Secret Code"),
-			StoryID: "Geng anak-anak punya tradisi: buat kode nama rahasia dengan membalik setiap kata.\n\nContoh: \"Budi Santoso\" → \"iduB osotnaSˮ",
-			StoryEN: sp("The kids have a tradition: create secret name codes by reversing each word.\n\nExample: \"Budi Santoso\" → \"iduB osotnaSˮ"),
+			StoryID: "Geng anak-anak punya tradisi: buat kode nama rahasia dengan membalik setiap kata.\n\nContoh: \"Budi Santoso\" → \"iduB osotnaS\"",
+			StoryEN: sp("The kids have a tradition: create secret name codes by reversing each word.\n\nExample: \"Budi Santoso\" → \"iduB osotnaS\""),
 			TaskID:  "Buat `balikKata(s string) string` yang membalik setiap kata. Cetak untuk \"Budi Santoso Rahardjo\".", TaskEN: sp("Create `balikKata(s string) string` that reverses each word. Print for \"Budi Santoso Rahardjo\"."),
 			HintID: sp("Split string, reverse tiap kata, join kembali."), HintEN: sp("Split string, reverse each word, join back."),
 			StarterCode:    sp("package main\n\nimport (\n    \"fmt\"\n    \"strings\"\n)\n\n// TODO: buat fungsi balikKata\n\nfunc main() {\n    fmt.Println(balikKata(\"Budi Santoso Rahardjo\"))\n}"),
 			SolutionCode:   sp("package main\n\nimport (\n    \"fmt\"\n    \"strings\"\n)\n\nfunc balikKata(s string) string {\n    words := strings.Fields(s)\n    for i, w := range words {\n        r := []rune(w)\n        for l, r2 := 0, len(r)-1; l < r2; l, r2 = l+1, r2-1 {\n            r[l], r[r2] = r[r2], r[l]\n        }\n        words[i] = string(r)\n    }\n    return strings.Join(words, \" \")\n}\n\nfunc main() {\n    fmt.Println(balikKata(\"Budi Santoso Rahardjo\"))\n}"),
-			TestCases:      j([]map[string]interface{}{{"input": "", "expected_output": "iduB osotnaSˮ ojdrahaR\n"}}),
-			ExpectedOutput: j("iduB osotnaSˮ ojdrahaR\n"),
+			TestCases:      j([]map[string]interface{}{{"input": "", "expected_output": "iduB osotnaS ojdrahaR\n"}}),
+			ExpectedOutput: j("iduB osotnaS ojdrahaR\n"),
 		},
 
 		// GO MEDIUM (4)
