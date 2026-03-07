@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
@@ -43,8 +44,18 @@ func Load() *Config {
 
 func InitDB(databaseURL string) *gorm.DB {
 	dsn := databaseURL
-	if dsn[:13] == "postgresql://" {
+	if len(dsn) > 13 && dsn[:13] == "postgresql://" {
 		dsn = "postgres://" + dsn[13:]
+	}
+
+	// Disable pgx literal statement caching to prevent "prepared statement already exists" (42P05)
+	// when sqlsandbox tests multiple dynamic schemas with the same query literal.
+	if !strings.Contains(dsn, "statement_cache_capacity=0") {
+		if strings.Contains(dsn, "?") {
+			dsn += "&statement_cache_capacity=0"
+		} else {
+			dsn += "?statement_cache_capacity=0"
+		}
 	}
 
 	db, err := gorm.Open(postgres.New(postgres.Config{
