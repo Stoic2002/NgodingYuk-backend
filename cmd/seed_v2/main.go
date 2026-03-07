@@ -28,6 +28,7 @@ func j(v interface{}) json.RawMessage {
 // Hardcoded UUID for the SQL Beginner course
 var (
 	CourseSQLBeg = uuid.MustParse("a0000000-0000-0000-0000-000000000004")
+	CourseGoBeg  = uuid.MustParse("a0000000-0000-0000-0000-000000000005")
 )
 
 // Lesson UUID helper — generates deterministic UUID from course + order
@@ -44,14 +45,23 @@ func main() {
 	cfg := config.Load()
 	db := config.InitDB(cfg.DatabaseURL)
 
-	log.Println("Seeding SQL Beginner Course (v2)...")
-	seedSQLBeginnerCourse(db)
+	// log.Println("Seeding SQL Beginner Course (v2)...")
+	// seedSQLBeginnerCourse(db)
 
-	log.Println("Seeding SQL Beginner Quizzes (v2)...")
-	seedSQLBeginnerQuizzes(db)
+	// log.Println("Seeding SQL Beginner Quizzes (v2)...")
+	// seedSQLBeginnerQuizzes(db)
 
-	log.Println("Seeding SQL Challenges (v2)...")
-	seedSQLChallenges(db)
+	log.Println("Seeding Go Beginner Course (v2)...")
+	seedGoBeginnerCourse(db)
+
+	log.Println("Seeding Go Beginner Quizzes (v2)...")
+	seedGoBeginnerQuizzes(db)
+
+	// log.Println("Seeding SQL Challenges (v2)...")
+	// seedSQLChallenges(db)
+
+	// log.Println("Seeding Go Challenges (v2)...")
+	// seedGoChallenges(db)
 
 	log.Println("✅ Seeding v2 complete!")
 }

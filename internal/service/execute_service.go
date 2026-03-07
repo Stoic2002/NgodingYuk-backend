@@ -202,22 +202,15 @@ func (s *ExecuteService) RunSQL(code string, schemaInfo json.RawMessage, testCas
 			}
 		case "cell_value":
 			if tc.Row != nil && tc.Col != nil && *tc.Row < len(result.Rows) {
-				colIdx := -1
-				for i, c := range result.Columns {
-					if c == *tc.Col {
-						colIdx = i
-						break
-					}
-				}
-				if colIdx != -1 && colIdx < len(result.Rows[*tc.Row]) {
-					actualVal = result.Rows[*tc.Row][colIdx]
+				if colVal, exists := result.Rows[*tc.Row][*tc.Col]; exists {
+					actualVal = colVal
 					actualStr := fmt.Sprintf("%v", actualVal)
 					expectedStr := fmt.Sprintf("%v", tc.Expected)
 					if actualStr == expectedStr {
 						passed = true
 					}
 				} else {
-					actualVal = "column not found or row incomplete"
+					actualVal = "column not found in row"
 				}
 			} else {
 				actualVal = "row out of bounds"

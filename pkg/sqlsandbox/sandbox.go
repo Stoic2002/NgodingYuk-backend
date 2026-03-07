@@ -29,9 +29,9 @@ type ColumnDef struct {
 
 // ExecuteResult holds the result of a SQL sandbox execution.
 type ExecuteResult struct {
-	Columns []string        `json:"columns"`
-	Rows    [][]interface{} `json:"rows"`
-	Error   string          `json:"error,omitempty"`
+	Columns []string                 `json:"columns"`
+	Rows    []map[string]interface{} `json:"rows"`
+	Error   string                   `json:"error,omitempty"`
 }
 
 // Sandbox manages temporary PostgreSQL schema execution.
@@ -105,7 +105,7 @@ func (s *Sandbox) Execute(schemaInfoJSON json.RawMessage, userQuery string) (*Ex
 	}
 
 	// Read rows
-	var resultRows [][]interface{}
+	var resultRows []map[string]interface{}
 	for rows.Next() {
 		values := make([]interface{}, len(columns))
 		valuePtrs := make([]interface{}, len(columns))
@@ -117,12 +117,13 @@ func (s *Sandbox) Execute(schemaInfoJSON json.RawMessage, userQuery string) (*Ex
 		}
 
 		// Convert []byte to string for JSON serialization
-		row := make([]interface{}, len(values))
+		row := make(map[string]interface{})
 		for i, v := range values {
+			colName := columns[i]
 			if b, ok := v.([]byte); ok {
-				row[i] = string(b)
+				row[colName] = string(b)
 			} else {
-				row[i] = v
+				row[colName] = v
 			}
 		}
 		resultRows = append(resultRows, row)
