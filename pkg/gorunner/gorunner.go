@@ -33,6 +33,13 @@ func Run(code string, stdin string) (*ExecuteResult, error) {
 	}
 
 	cmd := exec.Command("go", "run", mainFile)
+
+	// Create a writable cache directory for the Go compiler
+	cacheDir := filepath.Join(tmpDir, "cache")
+	os.MkdirAll(cacheDir, 0755)
+
+	cmd.Env = append(os.Environ(), fmt.Sprintf("GOCACHE=%s", cacheDir))
+
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
@@ -53,7 +60,7 @@ func Run(code string, stdin string) (*ExecuteResult, error) {
 		done <- cmd.Wait()
 	}()
 
-	timeout := 10 * time.Second
+	timeout := 20 * time.Second
 	select {
 	case err := <-done:
 		exitCode := 0
@@ -72,7 +79,7 @@ func Run(code string, stdin string) (*ExecuteResult, error) {
 	case <-time.After(timeout):
 		cmd.Process.Kill()
 		return &ExecuteResult{
-			Stderr:   "execution timed out (10s limit)",
+			Stderr:   "execution timed out (20s limit)",
 			ExitCode: 1,
 			TimedOut: true,
 		}, nil
