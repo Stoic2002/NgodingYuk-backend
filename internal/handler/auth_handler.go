@@ -113,11 +113,13 @@ func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 	}
 
 	if refreshToken == "" {
+		clearAuthCookies(c)
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "no refresh token provided"})
 	}
 
 	resp, err := h.svc.RefreshToken(service.RefreshRequest{RefreshToken: refreshToken})
 	if err != nil {
+		clearAuthCookies(c)
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
 	}
 

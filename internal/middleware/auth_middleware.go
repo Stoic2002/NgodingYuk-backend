@@ -25,6 +25,7 @@ func extractToken(c *fiber.Ctx) string {
 			return parts[1]
 		}
 	}
+
 	return ""
 }
 
