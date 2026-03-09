@@ -86,13 +86,14 @@ func main() {
 	challengeSvc := service.NewChallengeService(challengeRepo, progressRepo, userRepo, executeSvc)
 	courseSvc := service.NewCourseService(courseRepo, progressRepo, userRepo)
 	leaderboardSvc := service.NewLeaderboardService(progressRepo)
+	userSvc := service.NewUserService(userRepo, progressRepo, courseRepo)
 
 	// Initialize handlers
 	authHandler := handler.NewAuthHandler(authSvc)
 	challengeHandler := handler.NewChallengeHandler(challengeSvc)
 	courseHandler := handler.NewCourseHandler(courseSvc)
 	leaderboardHandler := handler.NewLeaderboardHandler(leaderboardSvc)
-	userHandler := handler.NewUserHandler(userRepo, progressRepo, courseRepo)
+	userHandler := handler.NewUserHandler(userSvc)
 	adminHandler := handler.NewAdminHandler(challengeRepo, courseRepo)
 
 	// Create Fiber app
@@ -124,6 +125,7 @@ func main() {
 	auth.Post("/register", authHandler.Register)
 	auth.Post("/login", authHandler.Login)
 	auth.Post("/refresh", authHandler.Refresh)
+	auth.Post("/logout", authHandler.Logout)
 
 	// Auth - Protected
 	authProtected := auth.Group("", middleware.AuthMiddleware())

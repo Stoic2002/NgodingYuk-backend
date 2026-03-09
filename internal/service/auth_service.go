@@ -4,17 +4,16 @@ import (
 	"errors"
 
 	"github.com/arulkarim/ngodingyuk-server/internal/domain"
-	"github.com/arulkarim/ngodingyuk-server/internal/repository"
 	"github.com/arulkarim/ngodingyuk-server/pkg/hash"
 	jwtpkg "github.com/arulkarim/ngodingyuk-server/pkg/jwt"
 	"github.com/google/uuid"
 )
 
 type AuthService struct {
-	userRepo *repository.UserRepository
+	userRepo UserRepository
 }
 
-func NewAuthService(userRepo *repository.UserRepository) *AuthService {
+func NewAuthService(userRepo UserRepository) *AuthService {
 	return &AuthService{userRepo: userRepo}
 }
 

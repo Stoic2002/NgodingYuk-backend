@@ -6,22 +6,21 @@ import (
 	"time"
 
 	"github.com/arulkarim/ngodingyuk-server/internal/domain"
-	"github.com/arulkarim/ngodingyuk-server/internal/repository"
 	"github.com/arulkarim/ngodingyuk-server/pkg/i18n"
 	"github.com/google/uuid"
 )
 
 type ChallengeService struct {
-	challengeRepo *repository.ChallengeRepository
-	progressRepo  *repository.ProgressRepository
-	userRepo      *repository.UserRepository
+	challengeRepo ChallengeRepository
+	progressRepo  ProgressRepository
+	userRepo      UserRepository
 	executeSvc    *ExecuteService
 }
 
 func NewChallengeService(
-	challengeRepo *repository.ChallengeRepository,
-	progressRepo *repository.ProgressRepository,
-	userRepo *repository.UserRepository,
+	challengeRepo ChallengeRepository,
+	progressRepo ProgressRepository,
+	userRepo UserRepository,
 	executeSvc *ExecuteService,
 ) *ChallengeService {
 	return &ChallengeService{

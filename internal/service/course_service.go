@@ -6,21 +6,20 @@ import (
 	"time"
 
 	"github.com/arulkarim/ngodingyuk-server/internal/domain"
-	"github.com/arulkarim/ngodingyuk-server/internal/repository"
 	"github.com/arulkarim/ngodingyuk-server/pkg/i18n"
 	"github.com/google/uuid"
 )
 
 type CourseService struct {
-	courseRepo   *repository.CourseRepository
-	progressRepo *repository.ProgressRepository
-	userRepo     *repository.UserRepository
+	courseRepo   CourseRepository
+	progressRepo ProgressRepository
+	userRepo     UserRepository
 }
 
 func NewCourseService(
-	courseRepo *repository.CourseRepository,
-	progressRepo *repository.ProgressRepository,
-	userRepo *repository.UserRepository,
+	courseRepo CourseRepository,
+	progressRepo ProgressRepository,
+	userRepo UserRepository,
 ) *CourseService {
 	return &CourseService{
 		courseRepo:   courseRepo,

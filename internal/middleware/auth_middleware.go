@@ -9,25 +9,37 @@ import (
 	jwtpkg "github.com/arulkarim/ngodingyuk-server/pkg/jwt"
 )
 
-// AuthMiddleware validates the JWT token from the Authorization header
+// extractToken helper to get token from cookie or header
+func extractToken(c *fiber.Ctx) string {
+	// 1. Try cookie first
+	token := c.Cookies("access_token")
+	if token != "" {
+		return token
+	}
+
+	// 2. Fall back to Authorization header
+	authHeader := c.Get("Authorization")
+	if authHeader != "" {
+		parts := strings.SplitN(authHeader, " ", 2)
+		if len(parts) == 2 && strings.ToLower(parts[0]) == "bearer" {
+			return parts[1]
+		}
+	}
+	return ""
+}
+
+// AuthMiddleware validates the JWT token from Cookie or Authorization header
 // and sets the userID (as uuid.UUID) in Fiber's context locals.
 func AuthMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		authHeader := c.Get("Authorization")
-		if authHeader == "" {
+		token := extractToken(c)
+		if token == "" {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "missing authorization header",
+				"error": "unauthorized, missing token",
 			})
 		}
 
-		parts := strings.SplitN(authHeader, " ", 2)
-		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "invalid authorization format",
-			})
-		}
-
-		claims, err := jwtpkg.ValidateToken(parts[1])
+		claims, err := jwtpkg.ValidateToken(token)
 		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "invalid or expired token",
@@ -53,17 +65,12 @@ func AuthMiddleware() fiber.Handler {
 // authenticated vs anonymous users.
 func OptionalAuthMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		authHeader := c.Get("Authorization")
-		if authHeader == "" {
+		token := extractToken(c)
+		if token == "" {
 			return c.Next()
 		}
 
-		parts := strings.SplitN(authHeader, " ", 2)
-		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-			return c.Next()
-		}
-
-		claims, err := jwtpkg.ValidateToken(parts[1])
+		claims, err := jwtpkg.ValidateToken(token)
 		if err != nil {
 			return c.Next()
 		}

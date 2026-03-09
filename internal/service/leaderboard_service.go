@@ -2,14 +2,13 @@ package service
 
 import (
 	"github.com/arulkarim/ngodingyuk-server/internal/domain"
-	"github.com/arulkarim/ngodingyuk-server/internal/repository"
 )
 
 type LeaderboardService struct {
-	progressRepo *repository.ProgressRepository
+	progressRepo ProgressRepository
 }
 
-func NewLeaderboardService(progressRepo *repository.ProgressRepository) *LeaderboardService {
+func NewLeaderboardService(progressRepo ProgressRepository) *LeaderboardService {
 	return &LeaderboardService{progressRepo: progressRepo}
 }
 
