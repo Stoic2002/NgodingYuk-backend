@@ -104,10 +104,17 @@ func main() {
 	// Global middleware
 	app.Use(recover.New())
 	app.Use(logger.New())
+
+	allowedOrigins := "http://localhost:3000, https://ngoding-yuk-frontend.vercel.app"
+	if os.Getenv("ALLOWED_ORIGINS") != "" {
+		allowedOrigins = os.Getenv("ALLOWED_ORIGINS")
+	}
+
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
-		AllowMethods: "GET,POST,PUT,PATCH,DELETE,OPTIONS",
-		AllowHeaders: "Origin,Content-Type,Accept,Authorization",
+		AllowOrigins:     allowedOrigins,
+		AllowMethods:     "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+		AllowHeaders:     "Origin,Content-Type,Accept,Authorization",
+		AllowCredentials: true,
 	}))
 
 	// Health check
