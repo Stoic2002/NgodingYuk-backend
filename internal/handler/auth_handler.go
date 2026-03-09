@@ -23,8 +23,8 @@ func setAuthCookies(c *fiber.Ctx, accessToken, refreshToken string) {
 		Value:    accessToken,
 		Expires:  time.Now().Add(15 * time.Minute), // Match JWT expiry
 		HTTPOnly: true,
-		Secure:   false, // Set true in production (HTTPS)
-		SameSite: "Lax",
+		Secure:   true,   // Require HTTPS for cross-origin
+		SameSite: "None", // Required for cross-origin cookies
 		Path:     "/",
 	})
 	c.Cookie(&fiber.Cookie{
@@ -32,8 +32,8 @@ func setAuthCookies(c *fiber.Ctx, accessToken, refreshToken string) {
 		Value:    refreshToken,
 		Expires:  time.Now().Add(7 * 24 * time.Hour), // 7 days
 		HTTPOnly: true,
-		Secure:   false, // Set true in production (HTTPS)
-		SameSite: "Lax",
+		Secure:   true,   // Require HTTPS for cross-origin
+		SameSite: "None", // Required for cross-origin cookies
 		Path:     "/",
 	})
 }
@@ -45,8 +45,8 @@ func clearAuthCookies(c *fiber.Ctx) {
 		Value:    "",
 		Expires:  time.Now().Add(-1 * time.Hour), // Expire immediately
 		HTTPOnly: true,
-		Secure:   false,
-		SameSite: "Lax",
+		Secure:   true,
+		SameSite: "None",
 		Path:     "/",
 	})
 	c.Cookie(&fiber.Cookie{
@@ -54,8 +54,8 @@ func clearAuthCookies(c *fiber.Ctx) {
 		Value:    "",
 		Expires:  time.Now().Add(-1 * time.Hour), // Expire immediately
 		HTTPOnly: true,
-		Secure:   false,
-		SameSite: "Lax",
+		Secure:   true,
+		SameSite: "None",
 		Path:     "/",
 	})
 }
