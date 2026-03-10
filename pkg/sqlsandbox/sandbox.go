@@ -158,6 +158,12 @@ func (s *Sandbox) insertRows(schema string, table TableDef) error {
 		colNames = append(colNames, col.Name)
 	}
 
+	tx, err := s.db.Begin()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
 	for _, row := range table.Rows {
 		var placeholders []string
 		var values []interface{}
@@ -173,10 +179,10 @@ func (s *Sandbox) insertRows(schema string, table TableDef) error {
 			strings.Join(colNames, ", "),
 			strings.Join(placeholders, ", "),
 		)
-		if _, err := s.db.Exec(query, values...); err != nil {
+		if _, err := tx.Exec(query, values...); err != nil {
 			return fmt.Errorf("insert into %s failed: %w", table.Name, err)
 		}
 	}
 
-	return nil
+	return tx.Commit()
 }

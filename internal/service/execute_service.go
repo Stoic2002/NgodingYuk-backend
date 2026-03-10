@@ -1,10 +1,14 @@
 package service
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"sync"
+	"time"
 
 	"github.com/arulkarim/ngodingyuk-server/pkg/gorunner"
 	"github.com/arulkarim/ngodingyuk-server/pkg/sqlsandbox"
@@ -46,9 +50,16 @@ func (s *ExecuteService) RunGo(code string, testCases json.RawMessage) (*Execute
 		}
 	}
 
+	// Compile the code once
+	program, err := gorunner.Compile(code)
+	if err != nil {
+		return &ExecuteResponse{Error: err.Error()}, nil
+	}
+	defer program.Cleanup()
+
 	if len(cases) == 0 {
 		// Run without test cases — just execute and return output
-		result, err := gorunner.Run(code, "")
+		result, err := program.Run(context.Background(), "")
 		if err != nil {
 			return &ExecuteResponse{Error: err.Error()}, nil
 		}
@@ -65,40 +76,67 @@ func (s *ExecuteService) RunGo(code string, testCases json.RawMessage) (*Execute
 		}, nil
 	}
 
-	var results []RunResult
+	results := make([]RunResult, len(cases))
+	var wg sync.WaitGroup
+	var mu sync.Mutex
 	allPassed := true
 
-	for _, tc := range cases {
-		result, err := gorunner.Run(code, tc.Input)
-		if err != nil {
-			results = append(results, RunResult{
-				Passed:   false,
-				Input:    tc.Input,
-				Expected: tc.Expected,
-				Actual:   "Error: " + err.Error(),
-			})
-			allPassed = false
-			continue
-		}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 
-		actual := result.Stdout
-		if result.ExitCode != 0 {
-			actual = result.Stderr
-		}
-		expected := strings.TrimSpace(tc.Expected)
-		passed := strings.TrimSpace(actual) == expected
+	for i, tc := range cases {
+		wg.Add(1)
+		go func(i int, tc struct {
+			Input    string `json:"input"`
+			Expected string `json:"expected"`
+		}) {
+			defer wg.Done()
 
-		if !passed {
-			allPassed = false
-		}
+			result, err := program.Run(ctx, tc.Input)
 
-		results = append(results, RunResult{
-			Passed:   passed,
-			Input:    tc.Input,
-			Expected: tc.Expected,
-			Actual:   strings.TrimSpace(actual),
-		})
+			var res RunResult
+			if err != nil {
+				res = RunResult{
+					Passed:   false,
+					Input:    tc.Input,
+					Expected: tc.Expected,
+					Actual:   "Error: " + err.Error(),
+				}
+				mu.Lock()
+				allPassed = false
+				mu.Unlock()
+			} else {
+				actual := result.Stdout
+				if result.ExitCode != 0 {
+					actual = result.Stderr
+					if actual == "" && result.TimedOut {
+						actual = "execution timed out"
+					}
+				}
+				expected := strings.TrimSpace(tc.Expected)
+				passed := strings.TrimSpace(actual) == expected
+
+				if !passed {
+					mu.Lock()
+					allPassed = false
+					mu.Unlock()
+				}
+
+				res = RunResult{
+					Passed:   passed,
+					Input:    tc.Input,
+					Expected: tc.Expected,
+					Actual:   strings.TrimSpace(actual),
+				}
+			}
+
+			mu.Lock()
+			results[i] = res
+			mu.Unlock()
+		}(i, tc)
 	}
+
+	wg.Wait()
 
 	return &ExecuteResponse{
 		Results:   results,
