@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -22,6 +23,7 @@ type ProgressRepo interface {
 		Status     string
 		Count      int64
 	}, error)
+	GetUserQuizHistory(userID uuid.UUID) ([]domain.QuizHistoryItem, error)
 }
 
 type CourseRepo interface {
@@ -68,6 +70,16 @@ type CertItemResp struct {
 	Score          int       `json:"score"`
 	TotalQuestions int       `json:"total_questions"`
 	PassedAt       time.Time `json:"passed_at"`
+}
+
+type QuizHistoryItemResp struct {
+	Type           string          `json:"type"`
+	CourseTitle    string          `json:"course_title"`
+	LessonTitle    string          `json:"lesson_title,omitempty"`
+	Score          int             `json:"score"`
+	TotalQuestions int             `json:"total_questions"`
+	ResultDetails  json.RawMessage `json:"result_details,omitempty"`
+	PassedAt       time.Time       `json:"passed_at"`
 }
 
 // === Service Methods ===
@@ -184,5 +196,30 @@ func (s *UserService) GetCertificates(userID uuid.UUID) ([]CertItemResp, error) 
 		})
 	}
 
+	return items, nil
+}
+
+func (s *UserService) GetQuizHistory(userID uuid.UUID) ([]QuizHistoryItemResp, error) {
+	history, err := s.progressRepo.GetUserQuizHistory(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var items []QuizHistoryItemResp
+	for _, h := range history {
+		items = append(items, QuizHistoryItemResp{
+			Type:           h.Type,
+			CourseTitle:    h.CourseTitle,
+			LessonTitle:    h.LessonTitle,
+			Score:          h.Score,
+			TotalQuestions: h.TotalQuestions,
+			ResultDetails:  h.ResultDetails,
+			PassedAt:       h.PassedAt,
+		})
+	}
+
+	if items == nil {
+		items = make([]QuizHistoryItemResp, 0)
+	}
 	return items, nil
 }

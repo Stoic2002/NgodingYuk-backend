@@ -23,6 +23,7 @@ type Course struct {
 	OrderIndex   int     `gorm:"default:0" json:"order_index"`
 
 	// Relations
+	Modules []Module `gorm:"foreignKey:CourseID" json:"modules,omitempty"`
 	Lessons []Lesson `gorm:"foreignKey:CourseID" json:"lessons,omitempty"`
 
 	CreatedAt time.Time      `json:"created_at"`

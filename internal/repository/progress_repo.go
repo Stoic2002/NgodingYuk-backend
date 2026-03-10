@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/arulkarim/ngodingyuk-server/internal/domain"
@@ -172,6 +173,73 @@ func (r *ProgressRepository) GetUserXPHistory(userID uuid.UUID, limit, offset in
 		return nil, err
 	}
 	return history, nil
+}
+
+// GetUserQuizHistory returns a combined history of completed lesson quizzes and course exams.
+func (r *ProgressRepository) GetUserQuizHistory(userID uuid.UUID) ([]domain.QuizHistoryItem, error) {
+	var results []domain.QuizHistoryItem
+
+	// 1. Get Lesson Quizzes
+	// Join user_lesson_progress (where quiz_completed = true) -> lessons -> courses
+	// To get TotalQuestions, we can join lesson_quizzes or just return 0 if complicated.
+	// Actually, let's use a subquery for TotalQuestions.
+	type lessonResult struct {
+		CourseTitle    string          `gorm:"column:course_title"`
+		LessonTitle    string          `gorm:"column:lesson_title"`
+		Score          int             `gorm:"column:score"`
+		TotalQuestions int             `gorm:"column:total_questions"`
+		ResultDetails  json.RawMessage `gorm:"column:result_details"`
+		CompletedAt    time.Time       `gorm:"column:completed_at"`
+	}
+	var lessons []lessonResult
+	err := r.db.Table("user_lesson_progress").
+		Select("courses.title_en as course_title, lessons.title_en as lesson_title, user_lesson_progress.quiz_score as score, (SELECT COUNT(*) FROM lesson_quizzes WHERE lesson_quizzes.lesson_id = lessons.id) as total_questions, user_lesson_progress.result_details as result_details, user_lesson_progress.completed_at as completed_at").
+		Joins("JOIN lessons ON lessons.id = user_lesson_progress.lesson_id").
+		Joins("JOIN courses ON courses.id = lessons.course_id").
+		Where("user_lesson_progress.user_id = ? AND user_lesson_progress.quiz_completed = ?", userID, true).
+		Scan(&lessons).Error
+	if err == nil {
+		for _, l := range lessons {
+			results = append(results, domain.QuizHistoryItem{
+				Type:           "lesson_quiz",
+				CourseTitle:    l.CourseTitle,
+				LessonTitle:    l.LessonTitle,
+				Score:          l.Score,
+				TotalQuestions: l.TotalQuestions,
+				ResultDetails:  l.ResultDetails,
+				PassedAt:       l.CompletedAt,
+			})
+		}
+	}
+
+	// 2. Get Course Exams (Certificates)
+	type examResult struct {
+		CourseTitle    string          `gorm:"column:course_title"`
+		Score          int             `gorm:"column:score"`
+		TotalQuestions int             `gorm:"column:total_questions"`
+		ResultDetails  json.RawMessage `gorm:"column:result_details"`
+		PassedAt       time.Time       `gorm:"column:passed_at"`
+	}
+	var exams []examResult
+	err = r.db.Table("certificates").
+		Select("courses.title_en as course_title, certificates.score as score, certificates.total_questions as total_questions, certificates.result_details as result_details, certificates.passed_at as passed_at").
+		Joins("JOIN courses ON courses.id = certificates.course_id").
+		Where("certificates.user_id = ?", userID).
+		Scan(&exams).Error
+	if err == nil {
+		for _, e := range exams {
+			results = append(results, domain.QuizHistoryItem{
+				Type:           "course_exam",
+				CourseTitle:    e.CourseTitle,
+				Score:          e.Score,
+				TotalQuestions: e.TotalQuestions,
+				ResultDetails:  e.ResultDetails,
+				PassedAt:       e.PassedAt,
+			})
+		}
+	}
+
+	return results, nil
 }
 
 // ============ LEADERBOARD ============

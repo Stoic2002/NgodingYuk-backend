@@ -51,7 +51,14 @@ type CourseDetailResponse struct {
 	Thumbnail   string           `json:"thumbnail_url,omitempty"`
 	IsEnrolled  bool             `json:"is_enrolled"`
 	HasCert     bool             `json:"has_certificate"`
-	Lessons     []LessonListItem `json:"lessons"`
+	Modules     []ModuleItemResp `json:"modules"` // Replacing Lessons array with Modules
+}
+
+type ModuleItemResp struct {
+	ID         string           `json:"id"`
+	Title      string           `json:"title"`
+	OrderIndex int              `json:"order_index"`
+	Lessons    []LessonListItem `json:"lessons"`
 }
 
 type LessonListItem struct {
@@ -94,6 +101,7 @@ type QuizSubmitResponse struct {
 
 type QuizResultItem struct {
 	QuizID       string `json:"quiz_id"`
+	Question     string `json:"question,omitempty"`
 	Correct      bool   `json:"correct"`
 	CorrectIndex int    `json:"correct_index"`
 	Explanation  string `json:"explanation,omitempty"`
@@ -136,11 +144,11 @@ type ExamSubmitResponse struct {
 
 // === Service Methods ===
 
-// ListCourses returns all courses filtered by language/level.
-func (s *CourseService) ListCourses(language, level, locale string) ([]CourseListItem, error) {
-	courses, err := s.courseRepo.ListCourses(language, level)
+// ListCourses returns all courses filtered by language/level/search.
+func (s *CourseService) ListCourses(language, level, search, locale string, limit, offset int) ([]CourseListItem, int64, error) {
+	courses, total, err := s.courseRepo.ListCourses(language, level, search, limit, offset)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	var items []CourseListItem
@@ -156,7 +164,12 @@ func (s *CourseService) ListCourses(language, level, locale string) ([]CourseLis
 			OrderIndex:  c.OrderIndex,
 		})
 	}
-	return items, nil
+
+	// Make sure we always return an array, even if empty
+	if items == nil {
+		items = make([]CourseListItem, 0)
+	}
+	return items, total, nil
 }
 
 // GetCourseBySlug returns course detail with lesson list.
@@ -186,31 +199,104 @@ func (s *CourseService) GetCourseBySlug(slug, locale string, userID uuid.UUID) (
 		}
 	}
 
-	var lessons []LessonListItem
-	for i, l := range course.Lessons {
-		// Lesson locking: lesson 0 always unlocked, lesson N locked if lesson N-1 not completed
-		isLocked := false
-		completed := false
-		if userID != uuid.Nil && isEnrolled {
-			completed = completedLessonIDs[l.ID.String()]
-			if i > 0 {
-				prevID := course.Lessons[i-1].ID.String()
-				if !completedLessonIDs[prevID] {
-					isLocked = true
+	// We also need to build a single flat list of lessons to check locking
+	// Course -> Module -> Lesson
+	var allLessons []domain.Lesson
+	var modulesResp []ModuleItemResp
+
+	for _, m := range course.Modules {
+		allLessons = append(allLessons, m.Lessons...)
+	}
+	// Fallback for un-moduled lessons (if any)
+	for _, l := range course.Lessons {
+		if l.ModuleID == nil {
+			allLessons = append(allLessons, l)
+		}
+	}
+
+	for _, m := range course.Modules {
+		var lessonsResp []LessonListItem
+		for _, l := range m.Lessons {
+			// Find index in allLessons
+			var lIndex int
+			for idx, al := range allLessons {
+				if al.ID == l.ID {
+					lIndex = idx
+					break
 				}
 			}
-		} else if userID != uuid.Nil && !isEnrolled {
-			// Not enrolled = all locked
-			isLocked = true
-		}
 
-		lessons = append(lessons, LessonListItem{
-			ID:         l.ID.String(),
-			Title:      i18n.Resolve(locale, l.TitleID, l.TitleEN),
-			OrderIndex: l.OrderIndex,
-			XPReward:   l.XPReward,
-			IsLocked:   isLocked,
-			Completed:  completed,
+			isLocked := false
+			completed := false
+			if userID != uuid.Nil && isEnrolled {
+				completed = completedLessonIDs[l.ID.String()]
+				if lIndex > 0 {
+					prevID := allLessons[lIndex-1].ID.String()
+					if !completedLessonIDs[prevID] {
+						isLocked = true
+					}
+				}
+			} else if userID != uuid.Nil && !isEnrolled {
+				isLocked = true
+			}
+
+			lessonsResp = append(lessonsResp, LessonListItem{
+				ID:         l.ID.String(),
+				Title:      i18n.Resolve(locale, l.TitleID, l.TitleEN),
+				OrderIndex: l.OrderIndex,
+				XPReward:   l.XPReward,
+				IsLocked:   isLocked,
+				Completed:  completed,
+			})
+		}
+		modulesResp = append(modulesResp, ModuleItemResp{
+			ID:         m.ID.String(),
+			Title:      i18n.Resolve(locale, m.TitleID, m.TitleEN),
+			OrderIndex: m.OrderIndex,
+			Lessons:    lessonsResp,
+		})
+	}
+
+	// Un-moduled lessons fallback handling (optional, just in case)
+	var unmoduledLessons []LessonListItem
+	for _, l := range course.Lessons {
+		if l.ModuleID == nil {
+			var lIndex int
+			for idx, al := range allLessons {
+				if al.ID == l.ID {
+					lIndex = idx
+					break
+				}
+			}
+			isLocked := false
+			completed := false
+			if userID != uuid.Nil && isEnrolled {
+				completed = completedLessonIDs[l.ID.String()]
+				if lIndex > 0 {
+					prevID := allLessons[lIndex-1].ID.String()
+					if !completedLessonIDs[prevID] {
+						isLocked = true
+					}
+				}
+			} else if userID != uuid.Nil && !isEnrolled {
+				isLocked = true
+			}
+			unmoduledLessons = append(unmoduledLessons, LessonListItem{
+				ID:         l.ID.String(),
+				Title:      i18n.Resolve(locale, l.TitleID, l.TitleEN),
+				OrderIndex: l.OrderIndex,
+				XPReward:   l.XPReward,
+				IsLocked:   isLocked,
+				Completed:  completed,
+			})
+		}
+	}
+	if len(unmoduledLessons) > 0 {
+		modulesResp = append(modulesResp, ModuleItemResp{
+			ID:         "", // pseudo
+			Title:      "Other Topics",
+			OrderIndex: 999,
+			Lessons:    unmoduledLessons,
 		})
 	}
 
@@ -224,7 +310,7 @@ func (s *CourseService) GetCourseBySlug(slug, locale string, userID uuid.UUID) (
 		Thumbnail:   ptrToString(course.ThumbnailURL),
 		IsEnrolled:  isEnrolled,
 		HasCert:     hasCert,
-		Lessons:     lessons,
+		Modules:     modulesResp,
 	}, nil
 }
 
@@ -317,6 +403,12 @@ func (s *CourseService) SubmitExam(userID uuid.UUID, courseSlug string, req Exam
 		return nil, errors.New("answer count mismatch")
 	}
 
+	user, _ := s.userRepo.FindByID(userID)
+	locale := "id"
+	if user != nil {
+		locale = user.Locale
+	}
+
 	score := 0
 	var details []QuizResultItem
 	for i, quiz := range quizzes {
@@ -324,9 +416,11 @@ func (s *CourseService) SubmitExam(userID uuid.UUID, courseSlug string, req Exam
 		if correct {
 			score++
 		}
-		explanation := i18n.ResolveOptional("id", quiz.ExplanationID, quiz.ExplanationEN)
+		explanation := i18n.ResolveOptional(locale, quiz.ExplanationID, quiz.ExplanationEN)
+		question := i18n.Resolve(locale, quiz.QuestionID, quiz.QuestionEN)
 		details = append(details, QuizResultItem{
 			QuizID:       quiz.ID.String(),
+			Question:     question,
 			Correct:      correct,
 			CorrectIndex: quiz.CorrectIndex,
 			Explanation:  explanation,
@@ -362,11 +456,13 @@ func (s *CourseService) SubmitExam(userID uuid.UUID, courseSlug string, req Exam
 		}
 
 		// Create certificate
+		detailsJSON, _ := json.Marshal(details)
 		cert := &domain.Certificate{
 			UserID:         userID,
 			CourseID:       course.ID,
 			Score:          score,
 			TotalQuestions: total,
+			ResultDetails:  detailsJSON,
 		}
 		s.courseRepo.CreateCertificate(cert)
 		certID = cert.ID.String()
@@ -464,6 +560,12 @@ func (s *CourseService) SubmitQuiz(userID, lessonID uuid.UUID, req QuizSubmitReq
 		return nil, errors.New("answer count must match quiz count")
 	}
 
+	user, _ := s.userRepo.FindByID(userID)
+	locale := "id"
+	if user != nil {
+		locale = user.Locale
+	}
+
 	score := 0
 	var totalXP int64
 	var details []QuizResultItem
@@ -475,10 +577,12 @@ func (s *CourseService) SubmitQuiz(userID, lessonID uuid.UUID, req QuizSubmitReq
 			totalXP += quiz.XPReward
 		}
 
-		explanation := i18n.ResolveOptional("id", quiz.ExplanationID, quiz.ExplanationEN)
+		explanation := i18n.ResolveOptional(locale, quiz.ExplanationID, quiz.ExplanationEN)
+		question := i18n.Resolve(locale, quiz.QuestionID, quiz.QuestionEN)
 
 		details = append(details, QuizResultItem{
 			QuizID:       quiz.ID.String(),
+			Question:     question,
 			Correct:      correct,
 			CorrectIndex: quiz.CorrectIndex,
 			Explanation:  explanation,
@@ -490,6 +594,8 @@ func (s *CourseService) SubmitQuiz(userID, lessonID uuid.UUID, req QuizSubmitReq
 	if err == nil {
 		progress.QuizCompleted = true
 		progress.QuizScore = score
+		detailsJSON, _ := json.Marshal(details)
+		progress.ResultDetails = detailsJSON
 
 		if progress.CompletedAt == nil {
 			now := time.Now()

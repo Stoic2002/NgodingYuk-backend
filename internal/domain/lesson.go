@@ -8,10 +8,11 @@ import (
 )
 
 type Lesson struct {
-	ID         uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
-	CourseID   uuid.UUID `gorm:"type:uuid;not null;index" json:"course_id"`
-	OrderIndex int       `gorm:"not null" json:"order_index"`
-	XPReward   int64     `gorm:"default:5" json:"xp_reward"`
+	ID         uuid.UUID  `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	CourseID   uuid.UUID  `gorm:"type:uuid;not null;index" json:"course_id"`
+	ModuleID   *uuid.UUID `gorm:"type:uuid;index" json:"module_id"`
+	OrderIndex int        `gorm:"not null" json:"order_index"`
+	XPReward   int64      `gorm:"default:5" json:"xp_reward"`
 
 	// Bilingual content
 	TitleID           string  `gorm:"size:255;not null" json:"title_id"`
@@ -21,6 +22,7 @@ type Lesson struct {
 
 	// Relations
 	Course  Course       `gorm:"foreignKey:CourseID" json:"-"`
+	Module  *Module      `gorm:"foreignKey:ModuleID" json:"-"`
 	Quizzes []LessonQuiz `gorm:"foreignKey:LessonID" json:"quizzes,omitempty"`
 
 	CreatedAt time.Time      `json:"created_at"`

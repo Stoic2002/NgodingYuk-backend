@@ -31,6 +31,11 @@ var (
 	CourseGoBeg  = uuid.MustParse("a0000000-0000-0000-0000-000000000005")
 )
 
+// Module UUID helper
+func moduleUUID(courseIdx, moduleIdx int) uuid.UUID {
+	return uuid.MustParse(fmt.Sprintf("b%07d-0000-0000-0000-%012d", courseIdx, moduleIdx))
+}
+
 // Lesson UUID helper — generates deterministic UUID from course + order
 func lessonUUID(courseIdx, lessonIdx int) uuid.UUID {
 	return uuid.MustParse(fmt.Sprintf("e%07d-0000-0000-0000-%012d", courseIdx, lessonIdx))
@@ -45,11 +50,11 @@ func main() {
 	cfg := config.Load()
 	db := config.InitDB(cfg.DatabaseURL)
 
-	// log.Println("Seeding SQL Beginner Course (v2)...")
-	// seedSQLBeginnerCourse(db)
+	log.Println("Seeding SQL Beginner Course (v2)...")
+	seedSQLBeginnerCourse(db)
 
-	// log.Println("Seeding SQL Beginner Quizzes (v2)...")
-	// seedSQLBeginnerQuizzes(db)
+	log.Println("Seeding SQL Beginner Quizzes (v2)...")
+	seedSQLBeginnerQuizzes(db)
 
 	log.Println("Seeding Go Beginner Course (v2)...")
 	seedGoBeginnerCourse(db)
@@ -57,11 +62,11 @@ func main() {
 	log.Println("Seeding Go Beginner Quizzes (v2)...")
 	seedGoBeginnerQuizzes(db)
 
-	// log.Println("Seeding SQL Challenges (v2)...")
-	// seedSQLChallenges(db)
+	log.Println("Seeding SQL Challenges (v2)...")
+	seedSQLChallenges(db)
 
-	// log.Println("Seeding Go Challenges (v2)...")
-	// seedGoChallenges(db)
+	log.Println("Seeding Go Challenges (v2)...")
+	seedGoChallenges(db)
 
 	log.Println("✅ Seeding v2 complete!")
 }
@@ -99,6 +104,24 @@ func upsertLesson(db *gorm.DB, lesson *domain.Lesson) {
 			log.Printf("  ⚠ Failed to update lesson (id=%s): %v\n", lesson.ID, err)
 		} else {
 			log.Printf("  ✓ Updated lesson: %s\n", lesson.TitleID)
+		}
+	}
+}
+
+func upsertModule(db *gorm.DB, module *domain.Module) {
+	var count int64
+	db.Model(module).Where("id = ?", module.ID).Count(&count)
+	if count == 0 {
+		if err := db.Create(module).Error; err != nil {
+			log.Printf("  ⚠ Failed to seed module (id=%s): %v\n", module.ID, err)
+		} else {
+			log.Printf("  ✓ Seeded module: %s\n", module.TitleID)
+		}
+	} else {
+		if err := db.Save(module).Error; err != nil {
+			log.Printf("  ⚠ Failed to update module (id=%s): %v\n", module.ID, err)
+		} else {
+			log.Printf("  ✓ Updated module: %s\n", module.TitleID)
 		}
 	}
 }

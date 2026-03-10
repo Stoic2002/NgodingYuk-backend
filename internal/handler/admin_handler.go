@@ -8,6 +8,7 @@ import (
 
 	"github.com/arulkarim/ngodingyuk-server/internal/domain"
 	"github.com/arulkarim/ngodingyuk-server/internal/repository"
+	"github.com/arulkarim/ngodingyuk-server/pkg/response"
 )
 
 type AdminHandler struct {
@@ -47,7 +48,7 @@ func (h *AdminHandler) CreateChallenge(c *fiber.Ctx) error {
 		OrderIndex     int             `json:"order_index"`
 	}
 	if err := c.BodyParser(&body); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
+		return response.Error(c, fiber.StatusBadRequest, "invalid request body")
 	}
 
 	challenge := &domain.Challenge{
@@ -72,45 +73,45 @@ func (h *AdminHandler) CreateChallenge(c *fiber.Ctx) error {
 	}
 
 	if err := h.challengeRepo.Create(challenge); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return response.Error(c, fiber.StatusInternalServerError, err.Error())
 	}
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"id": challenge.ID.String()})
+	return response.Success(c, fiber.StatusCreated, "success", map[string]interface{}{"id": challenge.ID.String()})
 }
 
 // UpdateChallenge handles PUT /api/admin/challenges/:id
 func (h *AdminHandler) UpdateChallenge(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid id"})
+		return response.Error(c, fiber.StatusBadRequest, "invalid id")
 	}
 
 	challenge, err := h.challengeRepo.FindByID(id)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "challenge not found"})
+		return response.Error(c, fiber.StatusNotFound, "challenge not found")
 	}
 
 	if err := c.BodyParser(challenge); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
+		return response.Error(c, fiber.StatusBadRequest, "invalid request body")
 	}
 	challenge.ID = id // ensure ID doesn't change
 
 	if err := h.challengeRepo.Update(challenge); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return response.Error(c, fiber.StatusInternalServerError, err.Error())
 	}
-	return c.JSON(fiber.Map{"message": "updated"})
+	return response.Success(c, fiber.StatusOK, "updated", nil)
 }
 
 // DeleteChallenge handles DELETE /api/admin/challenges/:id
 func (h *AdminHandler) DeleteChallenge(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid id"})
+		return response.Error(c, fiber.StatusBadRequest, "invalid id")
 	}
 
 	if err := h.challengeRepo.Delete(id); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return response.Error(c, fiber.StatusInternalServerError, err.Error())
 	}
-	return c.JSON(fiber.Map{"message": "deleted"})
+	return response.Success(c, fiber.StatusOK, "deleted", nil)
 }
 
 // === Course Admin ===
@@ -129,7 +130,7 @@ func (h *AdminHandler) CreateCourse(c *fiber.Ctx) error {
 		OrderIndex    int     `json:"order_index"`
 	}
 	if err := c.BodyParser(&body); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
+		return response.Error(c, fiber.StatusBadRequest, "invalid request body")
 	}
 
 	course := &domain.Course{
@@ -145,16 +146,16 @@ func (h *AdminHandler) CreateCourse(c *fiber.Ctx) error {
 	}
 
 	if err := h.courseRepo.CreateCourse(course); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return response.Error(c, fiber.StatusInternalServerError, err.Error())
 	}
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"id": course.ID.String()})
+	return response.Success(c, fiber.StatusCreated, "success", map[string]interface{}{"id": course.ID.String()})
 }
 
 // CreateLesson handles POST /api/admin/courses/:id/lessons
 func (h *AdminHandler) CreateLesson(c *fiber.Ctx) error {
 	courseID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid course id"})
+		return response.Error(c, fiber.StatusBadRequest, "invalid course id")
 	}
 
 	var body struct {
@@ -166,7 +167,7 @@ func (h *AdminHandler) CreateLesson(c *fiber.Ctx) error {
 		XPReward          int64   `json:"xp_reward"`
 	}
 	if err := c.BodyParser(&body); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
+		return response.Error(c, fiber.StatusBadRequest, "invalid request body")
 	}
 
 	lesson := &domain.Lesson{
@@ -180,52 +181,52 @@ func (h *AdminHandler) CreateLesson(c *fiber.Ctx) error {
 	}
 
 	if err := h.courseRepo.CreateLesson(lesson); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return response.Error(c, fiber.StatusInternalServerError, err.Error())
 	}
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"id": lesson.ID.String()})
+	return response.Success(c, fiber.StatusCreated, "success", map[string]interface{}{"id": lesson.ID.String()})
 }
 
 // UpdateLesson handles PUT /api/admin/lessons/:id
 func (h *AdminHandler) UpdateLesson(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid id"})
+		return response.Error(c, fiber.StatusBadRequest, "invalid id")
 	}
 
 	lesson, err := h.courseRepo.FindLessonByID(id)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "lesson not found"})
+		return response.Error(c, fiber.StatusNotFound, "lesson not found")
 	}
 
 	if err := c.BodyParser(lesson); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
+		return response.Error(c, fiber.StatusBadRequest, "invalid request body")
 	}
 	lesson.ID = id
 
 	if err := h.courseRepo.UpdateLesson(lesson); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return response.Error(c, fiber.StatusInternalServerError, err.Error())
 	}
-	return c.JSON(fiber.Map{"message": "updated"})
+	return response.Success(c, fiber.StatusOK, "updated", nil)
 }
 
 // DeleteLesson handles DELETE /api/admin/lessons/:id
 func (h *AdminHandler) DeleteLesson(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid id"})
+		return response.Error(c, fiber.StatusBadRequest, "invalid id")
 	}
 
 	if err := h.courseRepo.DeleteLesson(id); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return response.Error(c, fiber.StatusInternalServerError, err.Error())
 	}
-	return c.JSON(fiber.Map{"message": "deleted"})
+	return response.Success(c, fiber.StatusOK, "deleted", nil)
 }
 
 // CreateQuiz handles POST /api/admin/lessons/:id/quizzes
 func (h *AdminHandler) CreateQuiz(c *fiber.Ctx) error {
 	lessonID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid lesson id"})
+		return response.Error(c, fiber.StatusBadRequest, "invalid lesson id")
 	}
 
 	var body struct {
@@ -240,7 +241,7 @@ func (h *AdminHandler) CreateQuiz(c *fiber.Ctx) error {
 		XPReward      int64           `json:"xp_reward"`
 	}
 	if err := c.BodyParser(&body); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
+		return response.Error(c, fiber.StatusBadRequest, "invalid request body")
 	}
 
 	quiz := &domain.LessonQuiz{
@@ -257,7 +258,7 @@ func (h *AdminHandler) CreateQuiz(c *fiber.Ctx) error {
 	}
 
 	if err := h.courseRepo.CreateQuiz(quiz); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return response.Error(c, fiber.StatusInternalServerError, err.Error())
 	}
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"id": quiz.ID.String()})
+	return response.Success(c, fiber.StatusCreated, "success", map[string]interface{}{"id": quiz.ID.String()})
 }

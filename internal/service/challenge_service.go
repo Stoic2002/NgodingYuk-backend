@@ -75,12 +75,11 @@ type SubmitResponse struct {
 // === Service Methods ===
 
 // List returns a paginated list of challenges, resolved to the given locale.
-// List returns a paginated list of challenges, resolved to the given locale.
-func (s *ChallengeService) List(language, difficulty, locale string, limit, offset int, userID uuid.UUID) ([]ChallengeListItem, int64, error) {
+func (s *ChallengeService) List(language, difficulty, search, locale string, limit, offset int, userID uuid.UUID) ([]ChallengeListItem, int64, error) {
 	if limit <= 0 {
 		limit = 50
 	}
-	challenges, total, err := s.challengeRepo.List(language, difficulty, limit, offset)
+	challenges, total, err := s.challengeRepo.List(language, difficulty, search, limit, offset)
 	if err != nil {
 		return nil, 0, err
 	}

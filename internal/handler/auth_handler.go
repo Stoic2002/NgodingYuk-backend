@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"github.com/arulkarim/ngodingyuk-server/internal/service"
+	"github.com/arulkarim/ngodingyuk-server/pkg/response"
 )
 
 type AuthHandler struct {
@@ -64,20 +65,19 @@ func clearAuthCookies(c *fiber.Ctx) {
 func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	var req service.RegisterRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
+		return response.Error(c, fiber.StatusBadRequest, "invalid request body")
 	}
 
 	resp, err := h.svc.Register(req)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return response.Error(c, fiber.StatusBadRequest, err.Error())
 	}
 
 	// Set cookies rather than strictly relying on JSON response
 	setAuthCookies(c, resp.AccessToken, resp.RefreshToken)
 
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"user":    resp.User,
-		"message": "registration successful",
+	return response.Success(c, fiber.StatusCreated, "registration successful", map[string]interface{}{
+		"user": resp.User,
 	})
 }
 
@@ -85,19 +85,18 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	var req service.LoginRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
+		return response.Error(c, fiber.StatusBadRequest, "invalid request body")
 	}
 
 	resp, err := h.svc.Login(req)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+		return response.Error(c, fiber.StatusUnauthorized, err.Error())
 	}
 
 	setAuthCookies(c, resp.AccessToken, resp.RefreshToken)
 
-	return c.JSON(fiber.Map{
-		"user":    resp.User,
-		"message": "login successful",
+	return response.Success(c, fiber.StatusOK, "login successful", map[string]interface{}{
+		"user": resp.User,
 	})
 }
 
@@ -114,39 +113,38 @@ func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 
 	if refreshToken == "" {
 		clearAuthCookies(c)
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "no refresh token provided"})
+		return response.Error(c, fiber.StatusUnauthorized, "no refresh token provided")
 	}
 
 	resp, err := h.svc.RefreshToken(service.RefreshRequest{RefreshToken: refreshToken})
 	if err != nil {
 		clearAuthCookies(c)
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+		return response.Error(c, fiber.StatusUnauthorized, err.Error())
 	}
 
 	setAuthCookies(c, resp.AccessToken, resp.RefreshToken)
 
-	return c.JSON(fiber.Map{
-		"user":    resp.User,
-		"message": "token refreshed successfully",
+	return response.Success(c, fiber.StatusOK, "token refreshed successfully", map[string]interface{}{
+		"user": resp.User,
 	})
 }
 
 // Logout handles POST /api/auth/logout
 func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 	clearAuthCookies(c)
-	return c.JSON(fiber.Map{"message": "logged out successfully"})
+	return response.Success(c, fiber.StatusOK, "logged out successfully", nil)
 }
 
 // GetProfile handles GET /api/auth/me
 func (h *AuthHandler) GetProfile(c *fiber.Ctx) error {
 	userID, ok := getUserID(c)
 	if !ok {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+		return response.Error(c, fiber.StatusUnauthorized, "unauthorized")
 	}
 
 	profile, err := h.svc.GetProfile(userID)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
+		return response.Error(c, fiber.StatusNotFound, err.Error())
 	}
-	return c.JSON(profile)
+	return response.Success(c, fiber.StatusOK, "success", profile)
 }

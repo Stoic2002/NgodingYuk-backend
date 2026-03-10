@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"github.com/arulkarim/ngodingyuk-server/internal/service"
+	"github.com/arulkarim/ngodingyuk-server/pkg/response"
 )
 
 type LeaderboardHandler struct {
@@ -18,16 +19,16 @@ func NewLeaderboardHandler(svc *service.LeaderboardService) *LeaderboardHandler 
 func (h *LeaderboardHandler) GetWeekly(c *fiber.Ctx) error {
 	entries, err := h.svc.GetWeekly()
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return response.Error(c, fiber.StatusInternalServerError, err.Error())
 	}
-	return c.JSON(fiber.Map{"data": entries})
+	return response.Success(c, fiber.StatusOK, "success", entries)
 }
 
 // GetAllTime handles GET /api/leaderboard/all-time
 func (h *LeaderboardHandler) GetAllTime(c *fiber.Ctx) error {
 	entries, err := h.svc.GetAllTime()
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return response.Error(c, fiber.StatusInternalServerError, err.Error())
 	}
-	return c.JSON(fiber.Map{"data": entries})
+	return response.Success(c, fiber.StatusOK, "success", entries)
 }

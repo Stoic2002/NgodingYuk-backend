@@ -7,7 +7,7 @@ import (
 
 // ChallengeRepository defines the interface for challenge data storage.
 type ChallengeRepository interface {
-	List(language, difficulty string, limit, offset int) ([]domain.Challenge, int64, error)
+	List(language, difficulty, search string, limit, offset int) ([]domain.Challenge, int64, error)
 	FindBySlug(slug string) (*domain.Challenge, error)
 	Create(challenge *domain.Challenge) error
 	Update(challenge *domain.Challenge) error
@@ -17,7 +17,7 @@ type ChallengeRepository interface {
 // CourseRepository defines the interface for course data storage.
 type CourseRepository interface {
 	// Courses
-	ListCourses(language, level string) ([]domain.Course, error)
+	ListCourses(language, level, search string, limit, offset int) ([]domain.Course, int64, error)
 	FindCourseBySlug(slug string, preloadLessons bool) (*domain.Course, error)
 	FindCourseByID(id uuid.UUID) (*domain.Course, error)
 	CreateCourse(course *domain.Course) error
@@ -72,6 +72,7 @@ type ProgressRepository interface {
 	// XP & Gamification
 	CreateXPHistory(history *domain.UserXPHistory) error
 	GetUserXPHistory(userID uuid.UUID, limit, offset int) ([]domain.UserXPHistory, error)
+	GetUserQuizHistory(userID uuid.UUID) ([]domain.QuizHistoryItem, error)
 	GetWeeklyLeaderboard(limit int) ([]struct {
 		UserID   uuid.UUID
 		Username string

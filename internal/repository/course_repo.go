@@ -16,8 +16,8 @@ func NewCourseRepository(db *gorm.DB) *CourseRepository {
 
 // ============ COURSES ============
 
-// ListCourses returns courses with optional filtering by language and level.
-func (r *CourseRepository) ListCourses(language, level string) ([]domain.Course, error) {
+// ListCourses returns courses with optional filtering by language, level, and search query.
+func (r *CourseRepository) ListCourses(language, level, search string, limit, offset int) ([]domain.Course, int64, error) {
 	query := r.db.Model(&domain.Course{})
 
 	if language != "" {
@@ -26,19 +26,35 @@ func (r *CourseRepository) ListCourses(language, level string) ([]domain.Course,
 	if level != "" {
 		query = query.Where("level = ?", level)
 	}
+	if search != "" {
+		query = query.Where("title_id ILIKE ? OR title_en ILIKE ?", "%"+search+"%", "%"+search+"%")
+	}
+
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	if limit > 0 {
+		query = query.Limit(limit).Offset(offset)
+	}
 
 	var courses []domain.Course
 	if err := query.Order("order_index ASC, created_at ASC").Find(&courses).Error; err != nil {
-		return nil, err
+		return nil, 0, err
 	}
-	return courses, nil
+	return courses, total, nil
 }
 
 // FindCourseBySlug returns a course by slug, optionally preloading lessons.
 func (r *CourseRepository) FindCourseBySlug(slug string, preloadLessons bool) (*domain.Course, error) {
 	query := r.db.Where("slug = ?", slug)
 	if preloadLessons {
-		query = query.Preload("Lessons", func(db *gorm.DB) *gorm.DB {
+		query = query.Preload("Modules", func(db *gorm.DB) *gorm.DB {
+			return db.Order("order_index ASC")
+		}).Preload("Modules.Lessons", func(db *gorm.DB) *gorm.DB {
+			return db.Order("order_index ASC")
+		}).Preload("Lessons", func(db *gorm.DB) *gorm.DB {
 			return db.Order("order_index ASC")
 		})
 	}

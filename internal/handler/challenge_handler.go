@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/arulkarim/ngodingyuk-server/internal/service"
+	"github.com/arulkarim/ngodingyuk-server/pkg/response"
 )
 
 type ChallengeHandler struct {
@@ -34,21 +35,24 @@ func getUserID(c *fiber.Ctx) (uuid.UUID, bool) {
 func (h *ChallengeHandler) ListChallenges(c *fiber.Ctx) error {
 	language := c.Query("language")
 	difficulty := c.Query("difficulty")
+	search := c.Query("search")
 	locale := resolveLocale(c)
 	limit := c.QueryInt("limit", 50)
 	offset := c.QueryInt("offset", 0)
 
 	userID, _ := getUserID(c)
 
-	items, total, err := h.svc.List(language, difficulty, locale, limit, offset, userID)
+	items, total, err := h.svc.List(language, difficulty, search, locale, limit, offset, userID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return response.Error(c, fiber.StatusInternalServerError, err.Error())
 	}
 
-	return c.JSON(fiber.Map{
-		"data":  items,
-		"total": total,
-	})
+	totalPages := 0
+	if limit > 0 {
+		totalPages = int((total + int64(limit) - 1) / int64(limit))
+	}
+
+	return response.Success(c, fiber.StatusOK, "success", items, response.WithPagination(totalPages, int(total)))
 }
 
 // GetChallenge handles GET /api/challenges/:slug
@@ -58,9 +62,9 @@ func (h *ChallengeHandler) GetChallenge(c *fiber.Ctx) error {
 
 	detail, err := h.svc.GetBySlug(slug, locale)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
+		return response.Error(c, fiber.StatusNotFound, err.Error())
 	}
-	return c.JSON(detail)
+	return response.Success(c, fiber.StatusOK, "success", detail)
 }
 
 // RunChallenge handles POST /api/challenges/:slug/run
@@ -71,17 +75,17 @@ func (h *ChallengeHandler) RunChallenge(c *fiber.Ctx) error {
 		Code string `json:"code"`
 	}
 	if err := c.BodyParser(&body); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
+		return response.Error(c, fiber.StatusBadRequest, "invalid request body")
 	}
 	if body.Code == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "code is required"})
+		return response.Error(c, fiber.StatusBadRequest, "code is required")
 	}
 
 	result, err := h.svc.Run(slug, body.Code)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return response.Error(c, fiber.StatusBadRequest, err.Error())
 	}
-	return c.JSON(result)
+	return response.Success(c, fiber.StatusOK, "success", result)
 }
 
 // SubmitChallenge handles POST /api/challenges/:slug/submit
@@ -89,24 +93,24 @@ func (h *ChallengeHandler) SubmitChallenge(c *fiber.Ctx) error {
 	slug := c.Params("slug")
 	userID, ok := getUserID(c)
 	if !ok {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+		return response.Error(c, fiber.StatusUnauthorized, "unauthorized")
 	}
 
 	var body struct {
 		Code string `json:"code"`
 	}
 	if err := c.BodyParser(&body); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
+		return response.Error(c, fiber.StatusBadRequest, "invalid request body")
 	}
 	if body.Code == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "code is required"})
+		return response.Error(c, fiber.StatusBadRequest, "code is required")
 	}
 
 	result, err := h.svc.Submit(slug, userID, body.Code)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return response.Error(c, fiber.StatusInternalServerError, err.Error())
 	}
-	return c.JSON(result)
+	return response.Success(c, fiber.StatusOK, "success", result)
 }
 
 // GetMyProgress handles GET /api/challenges/:slug/my-progress
@@ -114,12 +118,12 @@ func (h *ChallengeHandler) GetMyProgress(c *fiber.Ctx) error {
 	slug := c.Params("slug")
 	userID, ok := getUserID(c)
 	if !ok {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+		return response.Error(c, fiber.StatusUnauthorized, "unauthorized")
 	}
 
 	progress, err := h.svc.GetMyProgress(slug, userID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return response.Error(c, fiber.StatusInternalServerError, err.Error())
 	}
-	return c.JSON(progress)
+	return response.Success(c, fiber.StatusOK, "success", progress)
 }

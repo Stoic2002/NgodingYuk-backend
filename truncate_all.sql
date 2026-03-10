@@ -5,6 +5,7 @@ TRUNCATE TABLE
     users,
     challenges,
     courses,
+    modules,
     lessons,
     lesson_quizzes,
     user_challenge_progress,

@@ -14,9 +14,9 @@ func NewChallengeRepository(db *gorm.DB) *ChallengeRepository {
 	return &ChallengeRepository{db: db}
 }
 
-// List returns challenges with optional filtering by language and difficulty.
+// List returns challenges with optional filtering by language, difficulty, and search query.
 // Supports pagination via limit/offset.
-func (r *ChallengeRepository) List(language, difficulty string, limit, offset int) ([]domain.Challenge, int64, error) {
+func (r *ChallengeRepository) List(language, difficulty, search string, limit, offset int) ([]domain.Challenge, int64, error) {
 	query := r.db.Model(&domain.Challenge{})
 
 	if language != "" {
@@ -24,6 +24,9 @@ func (r *ChallengeRepository) List(language, difficulty string, limit, offset in
 	}
 	if difficulty != "" {
 		query = query.Where("difficulty = ?", difficulty)
+	}
+	if search != "" {
+		query = query.Where("title_id ILIKE ? OR title_en ILIKE ?", "%"+search+"%", "%"+search+"%")
 	}
 
 	var total int64

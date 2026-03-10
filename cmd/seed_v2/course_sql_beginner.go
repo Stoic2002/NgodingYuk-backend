@@ -20,10 +20,27 @@ func seedSQLBeginnerCourse(db *gorm.DB) {
 	}
 	upsertCourse(db, &courseSQLBeg)
 
+	mod1 := moduleUUID(4, 1)
+	mod2 := moduleUUID(4, 2)
+	mod3 := moduleUUID(4, 3)
+	mod4 := moduleUUID(4, 4)
+
+	modules := []domain.Module{
+		{ID: mod1, CourseID: CourseSQLBeg, TitleID: "Fondasi & SELECT", TitleEN: sp("Foundations & SELECT"), OrderIndex: 1},
+		{ID: mod2, CourseID: CourseSQLBeg, TitleID: "Filtering & Sorting", TitleEN: sp("Filtering & Sorting"), OrderIndex: 2},
+		{ID: mod3, CourseID: CourseSQLBeg, TitleID: "Data Kosong & Metadata", TitleEN: sp("Null Data & Metadata"), OrderIndex: 3},
+		{ID: mod4, CourseID: CourseSQLBeg, TitleID: "Agregasi & Grouping", TitleEN: sp("Aggregation & Grouping"), OrderIndex: 4},
+	}
+
+	for _, mod := range modules {
+		upsertModule(db, &mod)
+	}
+
 	lessons := []domain.Lesson{
 		{
 			ID:         lessonUUID(4, 1),
 			CourseID:   CourseSQLBeg,
+			ModuleID:   &mod1,
 			OrderIndex: 1,
 			XPReward:   10,
 			TitleID:    "1. Pengenalan SQL dan Database",
@@ -54,6 +71,7 @@ Let's start our SQL journey!`),
 		{
 			ID:         lessonUUID(4, 2),
 			CourseID:   CourseSQLBeg,
+			ModuleID:   &mod1,
 			OrderIndex: 2,
 			XPReward:   10,
 			TitleID:    "2. Struktur Tabel Data",
@@ -90,6 +108,7 @@ In the next lesson, we will learn how to retrieve this data using SQL!`),
 		{
 			ID:         lessonUUID(4, 3),
 			CourseID:   CourseSQLBeg,
+			ModuleID:   &mod1,
 			OrderIndex: 3,
 			XPReward:   10,
 			TitleID:    "3. Mengambil Data dengan SELECT",
@@ -128,6 +147,7 @@ The command above will return all rows and all columns from the ` + "`" + `users
 		{
 			ID:         lessonUUID(4, 4),
 			CourseID:   CourseSQLBeg,
+			ModuleID:   &mod1,
 			OrderIndex: 4,
 			XPReward:   10,
 			TitleID:    "4. Memilih Kolom Spesifik",
@@ -154,6 +174,7 @@ This query will only show the **name** and **country** columns. This practice is
 		{
 			ID:         lessonUUID(4, 5),
 			CourseID:   CourseSQLBeg,
+			ModuleID:   &mod2,
 			OrderIndex: 5,
 			XPReward:   10,
 			TitleID:    "5. Menyaring Data dengan WHERE",
@@ -194,6 +215,7 @@ Only rows where the age column equals 20 will be displayed.`),
 		{
 			ID:         lessonUUID(4, 6),
 			CourseID:   CourseSQLBeg,
+			ModuleID:   &mod2,
 			OrderIndex: 6,
 			XPReward:   10,
 			TitleID:    "6. Operator Perbandingan",
@@ -238,6 +260,7 @@ SELECT * FROM employees WHERE salary <> 5000;
 		{
 			ID:         lessonUUID(4, 7),
 			CourseID:   CourseSQLBeg,
+			ModuleID:   &mod2,
 			OrderIndex: 7,
 			XPReward:   10,
 			TitleID:    "7. Operator Logika (AND, OR, NOT)",
@@ -276,6 +299,7 @@ SELECT * FROM users WHERE NOT country = 'Malaysia';
 		{
 			ID:         lessonUUID(4, 8),
 			CourseID:   CourseSQLBeg,
+			ModuleID:   &mod2,
 			OrderIndex: 8,
 			XPReward:   10,
 			TitleID:    "8. Menggunakan IN dan BETWEEN",
@@ -312,6 +336,7 @@ SELECT * FROM users WHERE age BETWEEN 20 AND 30;
 		{
 			ID:         lessonUUID(4, 9),
 			CourseID:   CourseSQLBeg,
+			ModuleID:   &mod2,
 			OrderIndex: 9,
 			XPReward:   10,
 			TitleID:    "9. Pencarian Teks dengan LIKE",
@@ -354,6 +379,7 @@ SELECT * FROM users WHERE name LIKE '%bud%';
 		{
 			ID:         lessonUUID(4, 10),
 			CourseID:   CourseSQLBeg,
+			ModuleID:   &mod2,
 			OrderIndex: 10,
 			XPReward:   10,
 			TitleID:    "10. Mengurutkan Data dengan ORDER BY",
@@ -388,6 +414,7 @@ SELECT * FROM users ORDER BY age DESC;
 		{
 			ID:         lessonUUID(4, 11),
 			CourseID:   CourseSQLBeg,
+			ModuleID:   &mod2,
 			OrderIndex: 11,
 			XPReward:   10,
 			TitleID:    "11. Membatasi Hasil dengan LIMIT",
@@ -416,6 +443,7 @@ LIMIT 5;
 		{
 			ID:         lessonUUID(4, 12),
 			CourseID:   CourseSQLBeg,
+			ModuleID:   &mod3,
 			OrderIndex: 12,
 			XPReward:   10,
 			TitleID:    "12. Nilai NULL dan IS NULL",
@@ -450,6 +478,7 @@ SELECT * FROM users WHERE phone_number IS NOT NULL;
 		{
 			ID:         lessonUUID(4, 13),
 			CourseID:   CourseSQLBeg,
+			ModuleID:   &mod3,
 			OrderIndex: 13,
 			XPReward:   10,
 			TitleID:    "13. Alias Kolom dengan AS",
@@ -480,6 +509,7 @@ The resulting output will display the columns header as ` + "`" + `full_name` + 
 		{
 			ID:         lessonUUID(4, 14),
 			CourseID:   CourseSQLBeg,
+			ModuleID:   &mod4,
 			OrderIndex: 14,
 			XPReward:   10,
 			TitleID:    "14. Pengenalan Fungsi Agregasi",
@@ -512,6 +542,7 @@ Let's dive into each completely in the following lessons.`),
 		{
 			ID:         lessonUUID(4, 15),
 			CourseID:   CourseSQLBeg,
+			ModuleID:   &mod4,
 			OrderIndex: 15,
 			XPReward:   10,
 			TitleID:    "15. Menghitung Baris dengan COUNT",
@@ -548,6 +579,7 @@ WHERE country = 'USA';
 		{
 			ID:         lessonUUID(4, 16),
 			CourseID:   CourseSQLBeg,
+			ModuleID:   &mod4,
 			OrderIndex: 16,
 			XPReward:   10,
 			TitleID:    "16. Fungsi SUM dan AVG",
@@ -582,6 +614,7 @@ SELECT AVG(score) FROM exam_results;
 		{
 			ID:         lessonUUID(4, 17),
 			CourseID:   CourseSQLBeg,
+			ModuleID:   &mod4,
 			OrderIndex: 17,
 			XPReward:   10,
 			TitleID:    "17. Fungsi MIN dan MAX",
@@ -610,6 +643,7 @@ SELECT MAX(price) FROM products;
 		{
 			ID:         lessonUUID(4, 18),
 			CourseID:   CourseSQLBeg,
+			ModuleID:   &mod4,
 			OrderIndex: 18,
 			XPReward:   10,
 			TitleID:    "18. Mengelompokkan Data dengan GROUP BY",
@@ -638,6 +672,7 @@ The DB engines calculates this dynamically (e.g. IT: 5, HR: 3, Sales: 4).`),
 		{
 			ID:         lessonUUID(4, 19),
 			CourseID:   CourseSQLBeg,
+			ModuleID:   &mod4,
 			OrderIndex: 19,
 			XPReward:   10,
 			TitleID:    "19. Menyaring Grup dengan HAVING",
@@ -668,6 +703,7 @@ HAVING COUNT(*) > 5;
 		{
 			ID:         lessonUUID(4, 20),
 			CourseID:   CourseSQLBeg,
+			ModuleID:   &mod4,
 			OrderIndex: 20,
 			XPReward:   10,
 			TitleID:    "20. Ringkasan Sintaks SQL Dasar",

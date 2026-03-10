@@ -13,6 +13,10 @@ run:
 	@echo "🚀 Running backend server..."
 	@go run $(MAIN_PATH)
 
+migrate:
+	@echo "🚀 Running database migrations and starting server..."
+	@DB_MIGRATE=true go run $(MAIN_PATH)
+
 build:
 	@echo "🔨 Building backend server..."
 	@mkdir -p $(BUILD_DIR)
@@ -22,6 +26,10 @@ build:
 seed:
 	@echo "🌱 Running database seeder..."
 	@go run $(SEED_PATH)
+
+seed-v2:
+	@echo "🌱 Running database seeder v2..."
+	@go run ./cmd/seed_v2/
 
 test:
 	@echo "🧪 Running tests..."

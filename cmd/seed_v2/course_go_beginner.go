@@ -20,10 +20,29 @@ func seedGoBeginnerCourse(db *gorm.DB) {
 	}
 	upsertCourse(db, &courseGoBeg)
 
+	mod1 := moduleUUID(5, 1)
+	mod2 := moduleUUID(5, 2)
+	mod3 := moduleUUID(5, 3)
+	mod4 := moduleUUID(5, 4)
+	mod5 := moduleUUID(5, 5)
+
+	modules := []domain.Module{
+		{ID: mod1, CourseID: CourseGoBeg, TitleID: "Pengenalan & Dasar Sintaks", TitleEN: sp("Introduction & Basic Syntax"), OrderIndex: 1},
+		{ID: mod2, CourseID: CourseGoBeg, TitleID: "Struktur Data", TitleEN: sp("Data Structures"), OrderIndex: 2},
+		{ID: mod3, CourseID: CourseGoBeg, TitleID: "Fungsi & Pointer", TitleEN: sp("Functions & Pointers"), OrderIndex: 3},
+		{ID: mod4, CourseID: CourseGoBeg, TitleID: "Struct & Interface", TitleEN: sp("Structs & Interfaces"), OrderIndex: 4},
+		{ID: mod5, CourseID: CourseGoBeg, TitleID: "Topik Lanjutan & Ekosistem", TitleEN: sp("Advanced Topics & Ecosystem"), OrderIndex: 5},
+	}
+
+	for _, mod := range modules {
+		upsertModule(db, &mod)
+	}
+
 	lessons := []domain.Lesson{
 		{
 			ID:         lessonUUID(5, 1),
 			CourseID:   CourseGoBeg,
+			ModuleID:   &mod1,
 			OrderIndex: 1,
 			XPReward:   10,
 			TitleID:    "1. Pengenalan Go (Golang)",
@@ -52,6 +71,7 @@ Tech conglomerates like Uber, Twitch, Grab, Tokopedia, and Google utilize it glo
 		{
 			ID:         lessonUUID(5, 2),
 			CourseID:   CourseGoBeg,
+			ModuleID:   &mod1,
 			OrderIndex: 2,
 			XPReward:   10,
 			TitleID:    "2. Struktur Hello World",
@@ -96,6 +116,7 @@ func main() {
 		{
 			ID:         lessonUUID(5, 3),
 			CourseID:   CourseGoBeg,
+			ModuleID:   &mod1,
 			OrderIndex: 3,
 			XPReward:   10,
 			TitleID:    "3. Variabel dan Konstanta",
@@ -144,6 +165,7 @@ const appName = "NgodingYuk"
 		{
 			ID:         lessonUUID(5, 4),
 			CourseID:   CourseGoBeg,
+			ModuleID:   &mod1,
 			OrderIndex: 4,
 			XPReward:   10,
 			TitleID:    "4. Tipe Data Dasar",
@@ -188,6 +210,7 @@ var employment bool = true
 		{
 			ID:         lessonUUID(5, 5),
 			CourseID:   CourseGoBeg,
+			ModuleID:   &mod1,
 			OrderIndex: 5,
 			XPReward:   10,
 			TitleID:    "5. Operator & Logika",
@@ -222,6 +245,7 @@ Subsequently ` + "`" + `||` + "`" + ` relays contextual (OR) parameters. Single 
 		{
 			ID:         lessonUUID(5, 6),
 			CourseID:   CourseGoBeg,
+			ModuleID:   &mod1,
 			OrderIndex: 6,
 			XPReward:   10,
 			TitleID:    "6. Percabangan If-Else",
@@ -280,6 +304,7 @@ if x := 10; x > 5 {
 		{
 			ID:         lessonUUID(5, 7),
 			CourseID:   CourseGoBeg,
+			ModuleID:   &mod2,
 			OrderIndex: 7,
 			XPReward:   10,
 			TitleID:    "7. Perulangan For",
@@ -340,6 +365,7 @@ for {
 		{
 			ID:         lessonUUID(5, 8),
 			CourseID:   CourseGoBeg,
+			ModuleID:   &mod2,
 			OrderIndex: 8,
 			XPReward:   10,
 			TitleID:    "8. Array & Slice (Antrean Data)",
@@ -392,6 +418,7 @@ fmt.Println(peers) // [Budi, Siti, Anto, Sarah]
 		{
 			ID:         lessonUUID(5, 9),
 			CourseID:   CourseGoBeg,
+			ModuleID:   &mod2,
 			OrderIndex: 9,
 			XPReward:   10,
 			TitleID:    "9. Map (Peta Pasangan Data)",
@@ -436,6 +463,7 @@ delete(studentAges, "Nagita")
 		{
 			ID:         lessonUUID(5, 10),
 			CourseID:   CourseGoBeg,
+			ModuleID:   &mod3,
 			OrderIndex: 10,
 			XPReward:   10,
 			TitleID:    "10. Dasar Menulis Fungsi (Function)",
@@ -480,6 +508,7 @@ func main() {
 		{
 			ID:         lessonUUID(5, 11),
 			CourseID:   CourseGoBeg,
+			ModuleID:   &mod3,
 			OrderIndex: 11,
 			XPReward:   10,
 			TitleID:    "11. Multiple Return Values (Kembalian Banyak)",
@@ -536,6 +565,7 @@ func main() {
 		{
 			ID:         lessonUUID(5, 12),
 			CourseID:   CourseGoBeg,
+			ModuleID:   &mod3,
 			OrderIndex: 12,
 			XPReward:   10,
 			TitleID:    "12. Pengenalan Tipografi Pointer & Alamat RAM",
@@ -592,6 +622,7 @@ func main() {
 		{
 			ID:         lessonUUID(5, 13),
 			CourseID:   CourseGoBeg,
+			ModuleID:   &mod4,
 			OrderIndex: 13,
 			XPReward:   10,
 			TitleID:    "13. Cetakan Struct (Object-Oriented di Go)",
@@ -652,6 +683,7 @@ func main() {
 		{
 			ID:         lessonUUID(5, 14),
 			CourseID:   CourseGoBeg,
+			ModuleID:   &mod4,
 			OrderIndex: 14,
 			XPReward:   10,
 			TitleID:    "14. Menempelkan Fungsi ke Struct (Method)",
@@ -710,6 +742,7 @@ func main() {
 		{
 			ID:         lessonUUID(5, 15),
 			CourseID:   CourseGoBeg,
+			ModuleID:   &mod4,
 			OrderIndex: 15,
 			XPReward:   10,
 			TitleID:    "15. Mewariskan Kewajiban (Interface)",
@@ -776,6 +809,7 @@ func (p Box) CalculateArea() float64 {
 		{
 			ID:         lessonUUID(5, 16),
 			CourseID:   CourseGoBeg,
+			ModuleID:   &mod5,
 			OrderIndex: 16,
 			XPReward:   10,
 			TitleID:    "16. Menghadapi Error dengan Kesatria (Error Handling)",
@@ -850,6 +884,7 @@ func main() {
 		{
 			ID:         lessonUUID(5, 17),
 			CourseID:   CourseGoBeg,
+			ModuleID:   &mod5,
 			OrderIndex: 17,
 			XPReward:   10,
 			TitleID:    "17. Paket Bawaan Wajib (fmt, strings, math)",
@@ -877,6 +912,7 @@ Essential fundamental core components generically integrated mapping basic routi
 		{
 			ID:         lessonUUID(5, 18),
 			CourseID:   CourseGoBeg,
+			ModuleID:   &mod5,
 			OrderIndex: 18,
 			XPReward:   10,
 			TitleID:    "18. Berkenalan Bersama Goroutine Mutakhir",
@@ -957,6 +993,7 @@ Congratulations mastering asynchronous advanced systemic execution workflows!`),
 		{
 			ID:         lessonUUID(5, 19),
 			CourseID:   CourseGoBeg,
+			ModuleID:   &mod5,
 			OrderIndex: 19,
 			XPReward:   10,
 			TitleID:    "19. Pipa Goroutine Sakti (Channel)",
@@ -1029,6 +1066,7 @@ func main() { // Original universe sequences
 		{
 			ID:         lessonUUID(5, 20),
 			CourseID:   CourseGoBeg,
+			ModuleID:   &mod5,
 			OrderIndex: 20,
 			XPReward:   25,
 			TitleID:    "20. Kelulusan (Masa Depan Gophers)",

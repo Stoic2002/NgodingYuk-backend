@@ -52,6 +52,7 @@ func main() {
 			&domain.User{},
 			&domain.Challenge{},
 			&domain.Course{},
+			&domain.Module{},
 			&domain.Lesson{},
 			&domain.LessonQuiz{},
 			&domain.UserChallengeProgress{},
@@ -175,6 +176,7 @@ func main() {
 	users.Get("/me/xp-history", userHandler.GetXPHistory)
 	users.Get("/me/challenge-stats", userHandler.GetChallengeStats)
 	users.Get("/me/certificates", userHandler.GetCertificates)
+	users.Get("/me/quiz-history", userHandler.GetQuizHistory)
 	users.Patch("/me", userHandler.UpdateMe)
 
 	// === Admin Routes (Protected) ===
