@@ -39,7 +39,17 @@ func Compile(code string) (*Program, error) {
 	}
 
 	binaryPath := filepath.Join(tmpDir, "program")
+	cacheDir := filepath.Join(tmpDir, "cache")
+	if err := os.MkdirAll(cacheDir, 0755); err != nil {
+		os.RemoveAll(tmpDir)
+		return nil, fmt.Errorf("failed to create cache dir: %w", err)
+	}
+
 	cmd := exec.Command("go", "build", "-o", binaryPath, mainFile)
+	cmd.Env = append(os.Environ(),
+		fmt.Sprintf("GOCACHE=%s", cacheDir),
+		fmt.Sprintf("GOMODCACHE=%s", cacheDir),
+	)
 
 	// Use a persistent cache directory if possible, otherwise use a subdirectory in tmp
 	// For now, let's use a subdirectory in the system's temp to avoid permission issues
